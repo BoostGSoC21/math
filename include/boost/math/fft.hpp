@@ -160,7 +160,7 @@
     //static_assert(std::is_same<input_value_type, output_value_type>::value,
     //  "Input and output types mismatch");
 
-    dft<input_value_type, backend> plan(std::distance(input_begin, input_end));
+    dft<input_value_type, backend> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
 
     plan.forward(input_begin, input_end, output);
   }
@@ -179,7 +179,7 @@
     //static_assert(std::is_same<input_value_type, output_value_type>::value, 
     //  "Input and output types mismatch");
 
-    dft<input_value_type, backend> plan(std::distance(input_begin, input_end));
+    dft<input_value_type, backend> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
 
     plan.backward(input_begin, input_end, output);
   }

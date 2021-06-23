@@ -78,9 +78,9 @@
       F.push_back(n);
     return F;
   }
-  
+
   bool is_power2(long x) { return x == (x & -x);}
-  
+
   template<class T>
   void dft_generic_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w)
   /*
@@ -130,7 +130,7 @@
   */
   {
     using real_value_type = typename complex_value_type::value_type;
-    const long N = std::distance(in_first,in_last);
+    const long N = static_cast<long>(std::distance(in_first,in_last));
     const real_value_type inv_N = real_value_type{1}/N;
     auto signed_pi = sign * boost::math::constants::pi<real_value_type>();
     if(N<=0)
@@ -287,17 +287,19 @@
     complex_value_type* out, int sign)
   {
     // Naive in-place complex DFT.
-    const long ptrdiff = std::distance(in_first,in_last);
-    if(ptrdiff <=0 )
+    const std::ptrdiff_t dist = std::distance(in_first,in_last);
+
+    if(dist <=0 )
       return;
-    const long my_n = least_power2(ptrdiff);
-    
+
+    const long my_n = least_power2(static_cast<long>(dist));
+
     if(in_first!=out)
       std::copy(in_first,in_last,out);
-    
+
     if (my_n == 1)
         return;
-    
+
     if(in_first!=out)
       std::copy(in_first, in_last, out);
 

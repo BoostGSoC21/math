@@ -61,7 +61,12 @@
   // FIXME: this gets unwieldy long. I feel it can be much shorter.
   template<typename RealType> struct select_complex {
     using R    = typename std::decay<RealType>::type;
-    static constexpr bool is_fundamental_fpnumber = std::is_same<R,float>::value or std::is_same<R,double>::value or std::is_same<R,long double>::value;
+
+    static constexpr bool is_fundamental_fpnumber =
+      (   std::is_same<R,float>::value
+       || std::is_same<R,double>::value
+       || std::is_same<R,long double>::value);
+
   #ifdef BOOST_MATH_USE_FLOAT128
     static constexpr bool is_float128             = std::is_same<R,boost::multiprecision::float128>::value;
   #else
@@ -87,7 +92,11 @@
     };
     */
 
-    static constexpr bool is_acceptable_number = is_fundamental_fpnumber or is_float128 or is_multiprecision_number<R>::value;
+    static constexpr bool is_acceptable_number =
+      (   is_fundamental_fpnumber
+       || is_float128
+       || is_multiprecision_number<R>::value);
+
     static_assert(is_acceptable_number , "Error: cannot create complex for given real type.");
 
     using type = typename std::conditional< is_fundamental_fpnumber,

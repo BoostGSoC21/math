@@ -31,7 +31,7 @@
     {
       const int sign = (plan == forward_plan ? -1 : 1);
       // select the implementation according to the DFT size
-      if( detail::is_power2(size())  )
+      if(detail::is_power2(static_cast<long>(size())))
         detail::dft_power2_dif(in,in+size(),out,sign);
       else
       { 
