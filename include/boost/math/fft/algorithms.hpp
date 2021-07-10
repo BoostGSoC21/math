@@ -223,7 +223,8 @@
         out[0]=in_first[0];
         return;
     }
-    auto prime_factors = prime_factorization(n);
+    std::vector<int> prime_factors;
+    prime_factorization(n,std::back_inserter(prime_factors));
     
     // reorder input
     for (long i = 0; i < n; ++i)
@@ -284,7 +285,8 @@
         out[0]=in_first[0];
         return;
     }
-    auto prime_factors = prime_factorization(n);
+    std::vector<int> prime_factors;
+    prime_factorization(n,std::back_inserter(prime_factors));
     
     // reorder input
     for (long i = 0; i < n; ++i)
