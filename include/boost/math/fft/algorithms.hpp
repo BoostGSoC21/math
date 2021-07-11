@@ -89,26 +89,18 @@
   }
   
   template<class T>
-  void dft_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w)
+  void dft_prime_bruteForce_outofplace(const T* in_first, const T* in_last, T* out, const T w)
   /*
     assumptions: 
     - allocated memory in out is enough to hold distance(in_first,in_last) element,
+    - out!=in
   */
   {
     const long N = static_cast<long>(std::distance(in_first,in_last));
     if(N<=0)
       return;
     
-    std::unique_ptr<T> mem;
-    T* work_space = out;
-    
-    if(in_first == out)
-    {
-      mem.reset(new T[N]);
-      work_space = mem.get();
-    }
-    
-    work_space[0] = std::accumulate(in_first+1,in_last,in_first[0]);
+    out[0] = std::accumulate(in_first+1,in_last,in_first[0]);
     
     T wi=w;
     for(long i=1;i<N;++i, wi*=w)
@@ -119,38 +111,41 @@
       {
         sum += in_first[j]*wij;
       }
-      work_space[i] = sum;
+      out[i] = sum;
     }
-    
-    if(out != work_space)
-      std::copy(work_space,work_space+N,out);
+  }
+  template<class T>
+  void dft_prime_bruteForce_inplace(T* in_first, T* in_last, const T w)
+  {
+    std::vector<T> work_space(in_first,in_last);
+    dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),w);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class T>
+  void dft_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w)
+  {
+    if(in_first==out)
+      dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),w);
+    else
+      dft_prime_bruteForce_outofplace(in_first,in_last,out,w);
   }
   
   template<class complex_value_type>
-  void complex_dft_prime_bruteForce(
+  void complex_dft_prime_bruteForce_outofplace(
     const complex_value_type* in_first, 
     const complex_value_type* in_last, 
     complex_value_type* out, int sign)
   /*
     assumptions: 
     - allocated memory in out is enough to hold distance(in_first,in_last) element,
+    - out!=in
   */
   {
     const long N = static_cast<long>(std::distance(in_first,in_last));
     if(N<=0)
       return;
     
-    std::unique_ptr<complex_value_type> mem;
-    complex_value_type* work_space = out;
-    
-    if(in_first == out)
-    {
-      mem.reset(new complex_value_type[N]);
-      work_space = mem.get();
-    }
-    
-    work_space[0] = std::accumulate(in_first+1,in_last,in_first[0]);
-    
+    out[0] = std::accumulate(in_first+1,in_last,in_first[0]);
     
     for(long i=1;i<N;++i)
     {
@@ -159,11 +154,30 @@
       {
         sum += in_first[j] * complex_root_of_unity<complex_value_type>(N,i*j*sign);
       }
-      work_space[i] = sum;
+      out[i] = sum;
     }
-    
-    if(out != work_space)
-      std::copy(work_space,work_space+N,out);
+  }
+  
+  template<class complex_value_type>
+  void complex_dft_prime_bruteForce_inplace(
+    complex_value_type* in_first, 
+    complex_value_type* in_last, 
+    int sign)
+  {
+    std::vector<complex_value_type> work_space(in_first,in_last);
+    complex_dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),sign);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class complex_value_type>
+  void complex_dft_prime_bruteForce(
+    const complex_value_type* in_first, 
+    const complex_value_type* in_last, 
+    complex_value_type* out, int sign)
+  {
+    if(in_first==out)
+      complex_dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),sign);
+    else
+      complex_dft_prime_bruteForce_outofplace(in_first,in_last,out,sign);
   }
   
   /*
@@ -263,7 +277,7 @@
             else
               tmp[j] = out[i + j*len_old +k ] * power(w_len,k*j);
           
-          dft_prime_bruteForce(tmp.data(),tmp.data()+p,tmp.data(),w_p);
+          dft_prime_bruteForce_inplace(tmp.data(),tmp.data()+p,w_p);
           
           for(long j=0;j<p;++j)
             out[i+ j*len_old + k] = tmp[j];
