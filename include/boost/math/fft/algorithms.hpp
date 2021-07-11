@@ -224,27 +224,29 @@
         out[0]=in_first[0];
         return;
     }
-    std::vector<int> prime_factors;
-    prime_factorization(n,std::back_inserter(prime_factors));
+    std::array<int,32> prime_factors;
+    const int nfactors = prime_factorization(n,prime_factors.begin());
     
     // reorder input
     for (long i = 0; i < n; ++i)
     {
         long j = 0, k = i;
-        for (auto p : prime_factors)
+        for (int ip=0;ip<nfactors;++ip)
         {
+            int p = prime_factors[ip];    
             j = j * p + k % p;
             k /= p;
         }
         out[j] = in_first[i];
     }
     
-    std::reverse(prime_factors.begin(), prime_factors.end());
+    std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
     
     // butterfly pattern
     long len = 1;
-    for (auto p : prime_factors)
+    for (int ip=0;ip<nfactors;++ip)
     {
+      int p = prime_factors[ip];
       long len_old = len;
       len *= p;
       T w_len = power(e, n / len);
@@ -286,27 +288,29 @@
         out[0]=in_first[0];
         return;
     }
-    std::vector<int> prime_factors;
-    prime_factorization(n,std::back_inserter(prime_factors));
+    std::array<int,32> prime_factors;
+    const int nfactors = prime_factorization(n,prime_factors.begin());
     
     // reorder input
     for (long i = 0; i < n; ++i)
     {
         long j = 0, k = i;
-        for (auto p : prime_factors)
+        for (int ip=0;ip<nfactors;++ip)
         {
+            int p = prime_factors[ip];
             j = j * p + k % p;
             k /= p;
         }
         out[j] = in_first[i];
     }
     
-    std::reverse(prime_factors.begin(), prime_factors.end());
+    std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
     
     // butterfly pattern
     long len = 1;
-    for (auto p : prime_factors)
+    for (int ip=0;ip<nfactors;++ip)
     {
+      int p = prime_factors[ip];
       long len_old = len;
       len *= p;
       
