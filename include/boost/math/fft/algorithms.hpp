@@ -16,6 +16,7 @@
   #include <boost/math/constants/constants.hpp>
   #include <boost/math/fft/abstract_ring.hpp>
   #include <boost/math/fft/discrete_maths.hpp>
+  #include <boost/container/static_vector.hpp>
   
 
 
@@ -354,7 +355,7 @@
     // auto _1 = T{1};
     
     int nbits = 0;
-    std::vector<T> e2{e};
+    ::boost::container::static_vector<T,32> e2{e};
     for (int m = n / 2; m > 0; m >>= 1, ++nbits)
       e2.push_back(e2.back() * e2.back());
 
