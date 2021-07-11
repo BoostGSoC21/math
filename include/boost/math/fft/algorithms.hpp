@@ -114,18 +114,18 @@
       out[i] = sum;
     }
   }
-  template<class T>
-  void dft_prime_bruteForce_inplace(T* in_first, T* in_last, const T w)
+  template<class T,class Allocator_t>
+  void dft_prime_bruteForce_inplace(T* in_first, T* in_last, const T w, Allocator_t& alloc)
   {
-    std::vector<T> work_space(in_first,in_last);
+    std::vector<T,Allocator_t> work_space(in_first,in_last,alloc);
     dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),w);
     std::copy(work_space.begin(),work_space.end(),in_first);
   }
-  template<class T>
-  void dft_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w)
+  template<class T, class Allocator_t>
+  void dft_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w, Allocator_t& alloc)
   {
     if(in_first==out)
-      dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),w);
+      dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),w,alloc);
     else
       dft_prime_bruteForce_outofplace(in_first,in_last,out,w);
   }
@@ -158,24 +158,27 @@
     }
   }
   
-  template<class complex_value_type>
+  template<class complex_value_type,class Allocator_t>
   void complex_dft_prime_bruteForce_inplace(
     complex_value_type* in_first, 
     complex_value_type* in_last, 
-    int sign)
+    int sign,
+    Allocator_t& alloc)
   {
-    std::vector<complex_value_type> work_space(in_first,in_last);
+    std::vector<complex_value_type,Allocator_t> work_space(in_first,in_last,alloc);
     complex_dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),sign);
     std::copy(work_space.begin(),work_space.end(),in_first);
   }
-  template<class complex_value_type>
+  template<class complex_value_type, class Allocator_t>
   void complex_dft_prime_bruteForce(
     const complex_value_type* in_first, 
     const complex_value_type* in_last, 
-    complex_value_type* out, int sign)
+    complex_value_type* out, 
+    int sign,
+    Allocator_t& alloc)
   {
     if(in_first==out)
-      complex_dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),sign);
+      complex_dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),sign,alloc);
     else
       complex_dft_prime_bruteForce_outofplace(in_first,in_last,out,sign);
   }
@@ -255,6 +258,7 @@
     }
     
     std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
+    std::allocator<T> alloc;
     
     // butterfly pattern
     long len = 1;
@@ -277,7 +281,7 @@
             else
               tmp[j] = out[i + j*len_old +k ] * power(w_len,k*j);
           
-          dft_prime_bruteForce_inplace(tmp.data(),tmp.data()+p,w_p);
+          dft_prime_bruteForce_inplace(tmp.data(),tmp.data()+p,w_p,alloc);
           
           for(long j=0;j<p;++j)
             out[i+ j*len_old + k] = tmp[j];
