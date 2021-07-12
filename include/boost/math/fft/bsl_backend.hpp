@@ -11,8 +11,6 @@
 
   #include <algorithm>
   #include <cmath>
-  #include <vector>
-  #include <exception>
   #include <type_traits>
 
   #include <boost/math/fft/algorithms.hpp>
