@@ -226,13 +226,19 @@
   }
   
   
-  template <class T>
-  void dft_composite(const T *in_first, const T *in_last, T* out, const T e)
+  template <class T, class allocator_t>
+  void dft_composite(const T *in_first, 
+                     const T *in_last, 
+                     T* out, 
+                     const T e,
+                     const allocator_t& alloc)
   {
     /*
       Cooley-Tukey mapping, intrinsically out-of-place, Decimation in Time
       composite sizes.
     */
+    using allocator_type = allocator_t;
+    
     const long n = static_cast<unsigned int>(std::distance(in_first,in_last));
     if(n <=0 )
       return;
@@ -259,7 +265,6 @@
     }
     
     std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
-    std::allocator<T> alloc;
     
     // butterfly pattern
     long len = 1;
@@ -271,7 +276,7 @@
       T w_len = power(e, n / len);
       T w_p = power(e,n/p);
       
-      std::vector<T> tmp(p);
+      std::vector<T,allocator_type> tmp(p,alloc);
       for (long i = 0; i < n; i += len)
       {
         for(long k=0;k<len_old;++k)
@@ -296,12 +301,13 @@
                              const ComplexType *in_last, 
                              ComplexType* out, 
                              int sign,
-                             const allocator_t& alloc = allocator_t{})
+                             const allocator_t& alloc)
   {
     /*
       Cooley-Tukey mapping, intrinsically out-of-place, Decimation in Time
       composite sizes.
     */
+    using allocator_type = allocator_t;
     const long n = static_cast<long>(std::distance(in_first,in_last));
     if(n <=0 )
       return;
@@ -337,7 +343,7 @@
       long len_old = len;
       len *= p;
       
-      std::vector<ComplexType> tmp(p);
+      std::vector<ComplexType,allocator_type> tmp(p,alloc);
       for (long i = 0; i < n; i += len)
       {
         for(long k=0;k<len_old;++k)

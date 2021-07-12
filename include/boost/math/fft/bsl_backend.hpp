@@ -99,7 +99,7 @@
         }
         else
         {
-          detail::dft_composite(in,in+N,out,w_execute);
+          detail::dft_composite(in,in+N,out,w_execute,alloc);
         }
       }
       
@@ -118,7 +118,7 @@
       }
       else
       {
-        detail::dft_composite(in,in+size(),out,w_execute);
+        detail::dft_composite(in,in+size(),out,w_execute,alloc);
       }
     }
     

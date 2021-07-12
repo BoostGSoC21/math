@@ -44,7 +44,7 @@ private:
   std::size_t my_size;
 };
 
-template<class NativeComplexType>
+template<class NativeComplexType, class Allocator_t = std::allocator<NativeComplexType> >
 class test_dft_prime_bruteForce
 {
   /*
@@ -52,8 +52,8 @@ class test_dft_prime_bruteForce
   */
   using real_value_type = typename NativeComplexType::value_type;
 public:
-  constexpr test_dft_prime_bruteForce(std::size_t n)
-    : my_size{n}
+  constexpr test_dft_prime_bruteForce(std::size_t n, const Allocator_t& that_alloc = Allocator_t())
+    : my_size{n}, alloc{that_alloc}
   { }
 
   void resize(std::size_t new_size)
@@ -65,20 +65,21 @@ public:
   void forward(const NativeComplexType* in, NativeComplexType* out) const
   {
     NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
-    detail::dft_prime_bruteForce(in,in+size(),out,w);
+    detail::dft_prime_bruteForce(in,in+size(),out,w,alloc);
   }
 
   void backward(const NativeComplexType* in, NativeComplexType* out) const
   {
     NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
-    detail::dft_prime_bruteForce(in,in+size(),out,w);
+    detail::dft_prime_bruteForce(in,in+size(),out,w,alloc);
   }
 
 private:
   std::size_t my_size;
+  Allocator_t alloc;
 };
 
-template<class NativeComplexType>
+template<class NativeComplexType, class Allocator_t = std::allocator<NativeComplexType> >
 class test_complex_dft_prime_bruteForce
 {
   /*
@@ -86,8 +87,8 @@ class test_complex_dft_prime_bruteForce
   */
   using real_value_type = typename NativeComplexType::value_type;
 public:
-  constexpr test_complex_dft_prime_bruteForce(std::size_t n)
-    : my_size{n}
+  constexpr test_complex_dft_prime_bruteForce(std::size_t n, const Allocator_t& that_alloc = Allocator_t())
+    : my_size{n}, alloc{that_alloc}
   { }
 
   void resize(std::size_t new_size)
@@ -98,16 +99,17 @@ public:
 
   void forward(const NativeComplexType* in, NativeComplexType* out) const
   {
-    detail::complex_dft_prime_bruteForce(in,in+size(),out,1);
+    detail::complex_dft_prime_bruteForce(in,in+size(),out,1,alloc);
   }
 
   void backward(const NativeComplexType* in, NativeComplexType* out) const
   {
-    detail::complex_dft_prime_bruteForce(in,in+size(),out,-1);
+    detail::complex_dft_prime_bruteForce(in,in+size(),out,-1,alloc);
   }
 
 private:
   std::size_t my_size;
+  Allocator_t alloc;
 };
 
 template<class NativeComplexType>
@@ -117,6 +119,7 @@ class test_dft_composite
     Special backend for testing the dft_composite
   */
   using real_value_type = typename NativeComplexType::value_type;
+  using allocator_type  = std::allocator<NativeComplexType> ;
 public:
   constexpr test_dft_composite(std::size_t n)
     : my_size{n}
@@ -131,17 +134,18 @@ public:
   void forward(const NativeComplexType* in, NativeComplexType* out) const
   {
     NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
-    detail::dft_composite(in,in+size(),out,w);
+    detail::dft_composite(in,in+size(),out,w,alloc);
   }
 
   void backward(const NativeComplexType* in, NativeComplexType* out) const
   {
     NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
-    detail::dft_composite(in,in+size(),out,w);
+    detail::dft_composite(in,in+size(),out,w,alloc);
   }
 
 private:
   std::size_t my_size;
+  allocator_type alloc{};
 };
 
 template<class NativeComplexType>
@@ -151,6 +155,7 @@ class test_complex_dft_composite
     Special backend for testing the complex_dft_composite
   */
   using real_value_type = typename NativeComplexType::value_type;
+  using allocator_type  = std::allocator<NativeComplexType> ;
 public:
   constexpr test_complex_dft_composite(std::size_t n)
     : my_size{n}
@@ -164,16 +169,17 @@ public:
 
   void forward(const NativeComplexType* in, NativeComplexType* out) const
   {
-    detail::complex_dft_composite(in,in+size(),out,1);
+    detail::complex_dft_composite(in,in+size(),out,1,alloc);
   }
 
   void backward(const NativeComplexType* in, NativeComplexType* out) const
   {
-    detail::complex_dft_composite(in,in+size(),out,-1);
+    detail::complex_dft_composite(in,in+size(),out,-1,alloc);
   }
 
 private:
   std::size_t my_size;
+  allocator_type alloc{};
 };
 
   
@@ -273,8 +279,7 @@ namespace my_modulo_lib
    public:
     constexpr mint() : x{0} {}
 
-    template <typename int_type>
-    mint(int_type _x) : x{_x}
+    mint(integer _x) : x{_x}
     {
       x %= Field::mod;
       if (x < 0)
