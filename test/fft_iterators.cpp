@@ -52,18 +52,21 @@ typename Container1::value_type::value_type difference(const Container1& A, cons
   return diff;
 }
 
-template<class RealType, template<class U> class Backend>
+template<class Backend>
 void test_inverse(int N, int tolerance)
 {
-  using ComplexType = std::complex<RealType>;
+  using ComplexType = typename Backend::value_type;
+  using RealType    = typename ComplexType::value_type;
+  
   const RealType tol = tolerance*std::numeric_limits<RealType>::epsilon();
   const std::vector< ComplexType > A{random_vector<RealType>(N)};
-
+  
+  Backend plan(1);
   {
     std::vector<ComplexType> B(N), C(N);
     
-    dft_forward<Backend>(std::begin(A),std::end(A),std::begin(B));
-    dft_backward<Backend>(std::begin(B),std::end(B),std::begin(C));
+    plan.forward(std::begin(A),std::end(A),std::begin(B));
+    plan.backward(std::begin(B),std::end(B),std::begin(C));
     
     RealType diff{difference(A,C)};
     CHECK_MOLLIFIED_CLOSE(RealType{0.0},diff,tol);
@@ -72,8 +75,8 @@ void test_inverse(int N, int tolerance)
     std::vector<ComplexType>  C(N);
     std::list<ComplexType> B;
 
-    dft_forward<Backend>(std::begin(A),std::end(A),std::back_inserter(B));
-    dft_backward<Backend>(std::begin(B),std::end(B),std::begin(C));
+    plan.forward(std::begin(A),std::end(A),std::back_inserter(B));
+    plan.backward(std::begin(B),std::end(B),std::begin(C));
 
     RealType diff{difference(A,C)};
     CHECK_MOLLIFIED_CLOSE(RealType{0.0},diff,tol);
@@ -81,27 +84,36 @@ void test_inverse(int N, int tolerance)
   {
     std::list<ComplexType> C;
 
-    dft_forward<Backend>(std::begin(A),std::end(A),std::back_inserter(C));
-    dft_backward<Backend>(std::begin(C),std::end(C),std::begin(C));
+    plan.forward(std::begin(A),std::end(A),std::back_inserter(C));
+    plan.backward(std::begin(C),std::end(C),std::begin(C));
 
     RealType diff{difference(A,C)};
     CHECK_MOLLIFIED_CLOSE(RealType{0.0},diff,tol);
   }
 }
 
+template<class T>
+using complex_fftw_dft = fftw_dft< typename detail::select_complex<T>::type  >;
+
+template<class T>
+using complex_gsl_dft = gsl_dft< typename detail::select_complex<T>::type  >;
+
+template<class T>
+using complex_bsl_dft = bsl_dft< typename detail::select_complex<T>::type  >;
+
 int main()
 {
   for(int i=1;i<=(1<<12); i*=2)
   {
-    test_inverse<float,fftw_dft>(i,1);
-    test_inverse<double,fftw_dft>(i,1);
-    test_inverse<long double,fftw_dft>(i,1);
+    test_inverse<complex_fftw_dft<float>>(i,1);
+    test_inverse<complex_fftw_dft<double>>(i,1);
+    test_inverse<complex_fftw_dft<long double>>(i,1);
     
-    test_inverse<double,gsl_dft>(i,1);
+    test_inverse<complex_gsl_dft<double>>(i,1);
     
-    test_inverse<float,bsl_dft>(i,1);
-    test_inverse<double,bsl_dft>(i,1);
-    test_inverse<long double,bsl_dft>(i,1);
+    test_inverse<complex_bsl_dft<float>>(i,1);
+    test_inverse<complex_bsl_dft<double>>(i,1);
+    test_inverse<complex_bsl_dft<long double>>(i,1);
   }
   return boost::math::test::report_errors();
 }

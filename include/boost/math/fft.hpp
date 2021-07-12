@@ -84,9 +84,8 @@
                    OutputIterator output)
   {
     using input_value_type  = typename std::iterator_traits<InputIterator1>::value_type;
-    using backend_type      = bsl_dft<input_value_type>;
-    detail::raw_convolution<backend_type, InputIterator1,InputIterator2,OutputIterator>
-      (input1_begin,input1_end,input2_begin,output);
+    using allocator_type    = std::allocator<input_value_type>;
+    detail::raw_convolution(input1_begin,input1_end,input2_begin,output,allocator_type{});
   }
   
   
