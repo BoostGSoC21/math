@@ -112,15 +112,24 @@
       out[i] = sum;
     }
   }
-  template<class T,class Allocator_t>
-  void dft_prime_bruteForce_inplace(T* in_first, T* in_last, const T w, Allocator_t& alloc)
+  template<class T,class allocator_t>
+  void dft_prime_bruteForce_inplace(
+    T* in_first, 
+    T* in_last, 
+    const T w, 
+    const allocator_t& alloc)
   {
-    std::vector<T,Allocator_t> work_space(in_first,in_last,alloc);
+    std::vector<T,allocator_t> work_space(in_first,in_last,alloc);
     dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),w);
     std::copy(work_space.begin(),work_space.end(),in_first);
   }
-  template<class T, class Allocator_t>
-  void dft_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w, Allocator_t& alloc)
+  template<class T, class allocator_t>
+  void dft_prime_bruteForce(
+    const T* in_first, 
+    const T* in_last, 
+    T* out, 
+    const T w, 
+    const allocator_t& alloc)
   {
     if(in_first==out)
       dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),w,alloc);
