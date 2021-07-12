@@ -17,8 +17,11 @@
 
   #include <boost/math/fft/algorithms.hpp>
   #include <boost/math/fft/abstract_ring.hpp>
+  #include <boost/math/fft/dft_api.hpp>
 
-  namespace boost { namespace math {  namespace fft {
+  namespace boost { namespace math {  namespace fft { 
+  
+  namespace detail {
 
 
   /*
@@ -40,9 +43,12 @@
     complex algorithms, unless the user provides a root of unity 'W', in which case
     the interface will execute general purpose DFT using W.
   */
-  template<class RingType>
-  class bsl_dft
+  template<class RingType, class allocator_t>
+  class bsl_backend
   {
+  public:
+    using value_type     = RingType;
+    using allocator_type = allocator_t;
   private:
     enum plan_type { forward_plan , backward_plan};
     
@@ -76,11 +82,11 @@
           else if(detail::is_prime(N))
           {
             // detail::complex_dft_prime_bruteForce(in,in+N,out,sign);
-            detail::complex_dft_prime_rader(in,in+N,out,sign);
+            detail::complex_dft_prime_rader(in,in+N,out,sign,alloc);
           }
           else
           {
-            detail::complex_dft_composite(in,in+N,out,sign);
+            detail::complex_dft_composite(in,in+N,out,sign,alloc);
           }
       }else
       {
@@ -117,19 +123,20 @@
     }
     
   public:
-    constexpr bsl_dft(std::size_t n=0):
-        my_size{n}
+    constexpr bsl_backend(std::size_t n=0, const allocator_type& in_alloc = allocator_type{}):
+        alloc{in_alloc}, my_size{n}
     {
     }
     
     // the provided root of unity is used instead of exp(-i 2 pi/n)
-    constexpr bsl_dft(std::size_t n, RingType /* root of unity = */ w):
+    constexpr bsl_backend(std::size_t n, RingType /* root of unity = */ w, const allocator_type& in_alloc = allocator_type{}):
+        alloc{in_alloc},
         my_size{n}, _has_root{true}, my_root{w},
         my_inverse_root{ my_size <=1 ? my_root : detail::power(my_root,my_size-1)}
     { 
     }
 
-    ~bsl_dft()
+    ~bsl_backend()
     {
     }
     
@@ -198,10 +205,16 @@
     }
 
   private:
+    allocator_type alloc;
     std::size_t my_size{};
     bool _has_root=false;
     RingType my_root, my_inverse_root;
   };
+  
+  } // namespace detail
+  
+  template<class RingType, class Allocator_t = std::allocator<RingType> >
+  using bsl_dft = detail::dft< detail::bsl_backend<RingType,Allocator_t> >;
 
   } } } // namespace boost::math::fft
 
