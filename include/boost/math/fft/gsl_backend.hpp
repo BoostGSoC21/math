@@ -11,16 +11,21 @@
 
 #include <gsl/gsl_fft_complex.h>
 #include <complex>
+#include <boost/math/fft/dft_api.hpp>
 
 namespace boost { namespace math { 
-namespace fft {
+namespace fft { namespace detail {
     
-    template<class T>
-    class gsl_dft;
+    template<class T, class A>
+    class gsl_backend;
     
-    template<>
-    class gsl_dft< std::complex<double> >
+    template<class Allocator_t>
+    class gsl_backend< std::complex<double>, Allocator_t >
     {
+    public:
+      using value_type     = std::complex<double>;
+      using allocator_type = Allocator_t;
+      
     private:
       using real_value_type    = double;
       using complex_value_type = std::complex<real_value_type>;
@@ -61,13 +66,13 @@ namespace fft {
       }
    public:
       
-      gsl_dft(std::size_t n):
+      gsl_backend(std::size_t n, const allocator_type& = allocator_type{}):
           my_size{n}
       {
         alloc();
       }
         
-      ~gsl_dft()
+      ~gsl_backend()
       {
         free();
       }
@@ -92,7 +97,10 @@ namespace fft {
         execute(backward_plan,in,out);
       }
     };
-    
+} // namespace detail    
+  
+  template<class ComplexType, class Allocator_t = std::allocator<ComplexType> >
+  using gsl_dft = detail::dft< detail::gsl_backend<ComplexType,Allocator_t> >;
     
 } // namespace fft
 } // namespace math

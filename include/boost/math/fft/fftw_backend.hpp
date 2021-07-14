@@ -12,7 +12,7 @@
   #include <memory>
 
   #include <fftw3.h>
-  #include <boost/math/fft/abstract_ring.hpp>
+  #include <boost/math/fft/dft_api.hpp>
 
   namespace boost { namespace math {  namespace fft {
 
@@ -119,11 +119,14 @@
   };
   #endif
 
-  } // namespace detail
 
-  template<class NativeComplexType>
-  class fftw_dft
+  template<class NativeComplexType, class Allocator_t >
+  class fftw_backend
   {
+  public:
+    using value_type     = NativeComplexType;
+    using allocator_type = Allocator_t;
+  
   private:
     using real_value_type    = typename NativeComplexType::value_type;
     using plan_type          = typename detail::fftw_traits_c_interface<real_value_type>::plan_type;
@@ -172,7 +175,7 @@
     }
 
   public:
-    fftw_dft(std::size_t n)
+    fftw_backend(std::size_t n, const allocator_type& = allocator_type{} )
       : my_size{ n }
     {
       // For C++11, this line needs to be constexpr-ified.
@@ -180,7 +183,7 @@
       alloc();
     }
 
-    ~fftw_dft()
+    ~fftw_backend()
     {
       free();
     }
@@ -213,6 +216,11 @@
     plan_type   my_backward_plan;
   };
 
+  } // namespace detail
+  
+  template<class ComplexType, class Allocator_t = std::allocator<ComplexType> >
+  using fftw_dft = detail::dft< detail::fftw_backend<ComplexType,Allocator_t> >;
+  
   } } } // namespace boost::math::fft
 
 #endif // BOOST_MATH_FFT_FFTWBACKEND_HPP
