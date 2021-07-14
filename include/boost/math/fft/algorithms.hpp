@@ -170,7 +170,7 @@
     complex_value_type* in_first, 
     complex_value_type* in_last, 
     int sign,
-    Allocator_t& alloc)
+    const Allocator_t& alloc)
   {
     std::vector<complex_value_type,Allocator_t> work_space(in_first,in_last,alloc);
     complex_dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),sign);
@@ -182,7 +182,7 @@
     const complex_value_type* in_last, 
     complex_value_type* out, 
     int sign,
-    Allocator_t& alloc)
+    const Allocator_t& alloc)
   {
     if(in_first==out)
       complex_dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),sign,alloc);
