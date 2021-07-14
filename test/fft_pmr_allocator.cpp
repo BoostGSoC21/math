@@ -8,16 +8,12 @@
 
 int global_error_count{0};
 
-#if __cplusplus >= 201700 && !defined(__clang__)
-
-// As for today (14-07-2021) clang compiler does not support
-// polymorphic_allocator
-// https://en.cppreference.com/w/cpp/compiler_support
-
 #include <cstdlib>
 #include <boost/math/fft/bsl_backend.hpp>
-#include <memory_resource>
 #include <array>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <boost/container/pmr/monotonic_buffer_resource.hpp>
+#include <boost/container/pmr/global_resource.hpp>
 
 
 bool new_is_on{true};
@@ -36,6 +32,8 @@ void * operator new[](size_t size)
   void * p = std::malloc(size);
   return p;
 }
+
+#if __cplusplus >= 201700
 void * operator new(size_t size, size_t align)
 {   
   if(new_is_on==false)
@@ -50,15 +48,16 @@ void * operator new[](size_t size, size_t align)
   void * p = std::aligned_alloc(size,align);
   return p;
 }
+#endif
 
 using namespace boost::math::fft;
 
 template<class Backend>
 void test_inverse(int N, int tolerance)
 {
-  std::array<std::byte,200000> buf;
-  std::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),std::pmr::null_memory_resource()};
+  std::array<char,200000> buf;
+  boost::container::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
   
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::value_type;
@@ -106,7 +105,7 @@ template<class T>
 struct complex_bsl_dft
 {
   using Complex = typename detail::select_complex<T>::type ;
-  using type = bsl_dft< Complex, std::pmr::polymorphic_allocator<Complex> >;
+  using type = bsl_dft< Complex, boost::container::pmr::polymorphic_allocator<Complex> >;
 };
 int main()
 {
@@ -119,12 +118,3 @@ int main()
   }
   return global_error_count;
 }
-
-#else
-
-int main()
-{
-  return global_error_count;
-}
-
-#endif
