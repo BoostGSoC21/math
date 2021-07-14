@@ -8,7 +8,11 @@
 
 int global_error_count{0};
 
-#if __cplusplus >= 201700
+#if __cplusplus >= 201700 && !defined(__clang__)
+
+// As for today (14-07-2021) clang compiler does not support
+// polymorphic_allocator
+// https://en.cppreference.com/w/cpp/compiler_support
 
 #include <cstdlib>
 #include <boost/math/fft/bsl_backend.hpp>
