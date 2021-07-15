@@ -41,7 +41,7 @@
     complex algorithms, unless the user provides a root of unity 'W', in which case
     the interface will execute general purpose DFT using W.
   */
-  template<class RingType, class allocator_t>
+  template<class RingType, class allocator_t = std::allocator<RingType> >
   class bsl_backend
   {
   public:
@@ -213,7 +213,7 @@
   
   template<class RingType, class Allocator_t = std::allocator<RingType> >
   using bsl_dft = detail::dft< detail::bsl_backend<RingType,Allocator_t> >;
-
+  
   } } } // namespace boost::math::fft
 
 #endif // BOOST_MATH_FFT_BSLBACKEND_HPP
