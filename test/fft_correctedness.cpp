@@ -1,5 +1,4 @@
 #include "math_unit_test.hpp"
-#include <boost/math/fft.hpp>
 #include <boost/math/fft/bsl_backend.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
@@ -38,7 +37,7 @@ void convolution_brute_force(
   }
 }
 
-template<class T>
+template<template<class ...Args> class backend_t, class T>
 void test_convolution(unsigned int N, int tolerance)
 {
   using Complex = typename detail::select_complex<T>::type;
@@ -63,7 +62,7 @@ void test_convolution(unsigned int N, int tolerance)
     convolution_brute_force(A.data(),A.data()+N,B.data(),C.data());
     
     std::vector<Complex> C_candidate;
-    convolution(A.data(),A.data()+N,B.data(),std::back_inserter(C_candidate));
+    transform<backend_t>::convolution(A.begin(),A.end(),B.begin(),std::back_inserter(C_candidate));
     
     T diff{0.0};
     
@@ -367,7 +366,9 @@ int main()
 #endif
     }
     
-    test_convolution<double>(i,i*8);
+    test_convolution<fftw_dft,double>(i,i*8);
+    test_convolution<gsl_dft,double>(i,i*8);
+    test_convolution<bsl_dft,double>(i,i*8);
     
     test_inverse<complex_composite_dft<float>>(i,i*8);
     test_inverse<complex_composite_dft<double>>(i,i*8);
@@ -377,7 +378,6 @@ int main()
     test_inverse<complex_composite_cdft<double>>(i,2);
     test_inverse<complex_composite_cdft<long double>>(i,2);
   }
-
   // TODO: can we print a useful compilation error message for the following
   // illegal case?
   // dft<std::complex<int>> P(3);   

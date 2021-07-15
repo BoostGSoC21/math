@@ -11,7 +11,9 @@
 
 #ifndef BOOST_MATH_DFTAPI_HPP
   #define BOOST_MATH_DFTAPI_HPP
-  
+
+#include <algorithm>
+
   namespace boost { namespace math { namespace fft { 
   namespace detail {
 
@@ -217,6 +219,44 @@
     using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
     plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
     plan.backward(input_begin, input_end, output);
+  }
+
+  template<typename InputIterator1,
+           typename InputIterator2,
+           typename OutputIterator>
+  static void convolution(
+      InputIterator1 input1_begin,
+      InputIterator1 input1_end,
+      InputIterator2 input2_begin,
+      OutputIterator output)
+  {
+    using input_value_type  = typename std::iterator_traits<InputIterator1>::value_type;
+    using real_value_type  = typename input_value_type::value_type;
+    // using allocator_type    = std::allocator<input_value_type>;
+    const long N = std::distance(input1_begin,input1_end);
+    plan_type<input_value_type> plan(static_cast<unsigned int>(N));
+    
+    std::vector<input_value_type> In1(N),In2(N),Out(N);
+    
+    std::copy(input1_begin,input1_end,In1.begin());
+    
+    InputIterator2 input2_end{input2_begin};
+    std::advance(input2_end,N);
+    std::copy(input2_begin,input2_end,In2.begin());
+    
+    plan.forward(In1.begin(),In1.end(),In1.begin());
+    plan.forward(In2.begin(),In2.end(),In2.begin());
+    
+    // direct convolution
+    std::transform(In1.begin(),In1.end(),In2.begin(),Out.begin(),std::multiplies<input_value_type>()); 
+    
+    plan.backward(Out.begin(),Out.end(),Out.begin());
+    
+    const real_value_type inv_N = real_value_type{1}/N;
+    for(auto & x : Out)
+        x *= inv_N;
+    
+    std::copy(Out.begin(),Out.end(),output);
   }
   
   };
