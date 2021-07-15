@@ -156,6 +156,71 @@
   };
   
   } // namespace detail
+  
+  template< template<class ...Args> class backend_t >
+  struct transform
+  {
+    template<class RingType>
+    using plan_type = backend_t<RingType,std::allocator<RingType>>;
+  
+  // std::transform-like Fourier Transform API
+  // for complex types
+  template<typename InputIterator,
+           typename OutputIterator>
+  static void forward(InputIterator  input_begin,
+                   InputIterator  input_end,
+                   OutputIterator output)
+  {
+    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+    plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+    plan.forward(input_begin, input_end, output);
+  }
+
+  // std::transform-like Fourier Transform API
+  // for complex types
+  template<typename InputIterator,
+           typename OutputIterator>
+  static void backward(InputIterator  input_begin,
+                    InputIterator  input_end,
+                    OutputIterator output)
+  {
+    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+    plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+    plan.backward(input_begin, input_end, output);
+  }
+  
+  // std::transform-like Fourier Transform API
+  // for Ring types
+  template<typename InputIterator,
+           typename OutputIterator,
+           typename value_type>
+  static void forward(InputIterator  input_begin,
+                   InputIterator  input_end,
+                   OutputIterator output,
+                   value_type w)
+  {
+    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+    plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
+    plan.forward(input_begin, input_end, output);
+  }
+
+  // std::transform-like Fourier Transform API
+  // for Ring types
+  template<typename InputIterator,
+           typename OutputIterator,
+           typename value_type>
+  static void backward(InputIterator  input_begin,
+                    InputIterator  input_end,
+                    OutputIterator output,
+                    value_type w)
+  {
+    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+    plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
+    plan.backward(input_begin, input_end, output);
+  }
+  
+  };
+  
   } } } // namespace boost::math::fft
 
 

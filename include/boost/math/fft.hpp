@@ -19,62 +19,6 @@
 
   namespace boost { namespace math { namespace fft { 
   
-  // std::transform-like Fourier Transform API
-  // for complex types
-  template<typename InputIterator,
-           typename OutputIterator>
-  void dft_forward(InputIterator  input_begin,
-                   InputIterator  input_end,
-                   OutputIterator output)
-  {
-    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
-    bsl_dft<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
-    plan.forward(input_begin, input_end, output);
-  }
-
-  // std::transform-like Fourier Transform API
-  // for complex types
-  template<typename InputIterator,
-           typename OutputIterator>
-  void dft_backward(InputIterator  input_begin,
-                    InputIterator  input_end,
-                    OutputIterator output)
-  {
-    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
-    bsl_dft<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
-    plan.backward(input_begin, input_end, output);
-  }
-  
-  // std::transform-like Fourier Transform API
-  // for Ring types
-  template<typename InputIterator,
-           typename OutputIterator,
-           typename value_type>
-  void dft_forward(InputIterator  input_begin,
-                   InputIterator  input_end,
-                   OutputIterator output,
-                   value_type w)
-  {
-    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
-    bsl_dft<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
-    plan.forward(input_begin, input_end, output);
-  }
-
-  // std::transform-like Fourier Transform API
-  // for Ring types
-  template<typename InputIterator,
-           typename OutputIterator,
-           typename value_type>
-  void dft_backward(InputIterator  input_begin,
-                    InputIterator  input_end,
-                    OutputIterator output,
-                    value_type w)
-  {
-    using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
-    bsl_dft<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
-    plan.backward(input_begin, input_end, output);
-  }
-  
   template<typename InputIterator1,
            typename InputIterator2,
            typename OutputIterator>
