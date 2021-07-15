@@ -37,6 +37,51 @@ void convolution_brute_force(
   }
 }
 
+template<class T>
+void dft_forward_bruteForce(
+  const T* in_beg, const T* in_end,
+  T* out)
+{
+  ::boost::math::fft::detail::complex_dft_prime_bruteForce(
+    in_beg,in_end,out,
+    1,
+    std::allocator<T>{});
+}
+
+template<template<class ...Args> class backend_t, class T>
+void test_directly(unsigned int N, int tolerance)
+{
+  using Complex = typename detail::select_complex<T>::type;
+  const T tol = tolerance*std::numeric_limits<T>::epsilon();
+  
+  // ...
+  boost::random::mt19937 rng;
+  boost::random::uniform_real_distribution<T> U(0.0,1.0);
+  {
+    std::vector<Complex> A(N),B(N),C(N);
+    
+    for(auto& x: A)
+    {
+        x.real( U(rng) );
+        x.imag( U(rng) );
+    }
+    
+    transform<backend_t>::forward(A.begin(),A.end(),B.begin());
+    dft_forward_bruteForce(A.data(),A.data()+N,C.data());
+    
+    T diff{0.0};
+    
+    for(size_t i=0;i<N;++i)
+    {
+        using std::norm;
+        diff += norm(B[i]-C[i]);
+    }
+    using std::sqrt;
+    diff = sqrt(diff)/N;
+    CHECK_MOLLIFIED_CLOSE(T{0.0},diff,tol);
+  }
+}
+
 template<template<class ...Args> class backend_t, class T>
 void test_convolution(unsigned int N, int tolerance)
 {
@@ -250,7 +295,9 @@ int main()
   
   for(int i=1;i<=(1<<10); i*=2)
   {
-//    test_convolution<double>(i,128);
+    test_directly<fftw_dft,double>(i,i*8);
+    test_directly<gsl_dft,double>(i,i*8);
+    test_directly<bsl_dft,double>(i,i*8);
     
     test_inverse<complex_fftw_dft<float>>(i,1);
     test_inverse<complex_fftw_dft<double>>(i,1);
@@ -285,6 +332,10 @@ int main()
   }
   for(int i=1;i<=1000; i*=10)
   {
+    test_directly<fftw_dft,double>(i,i*8);
+    test_directly<gsl_dft,double>(i,i*8);
+    test_directly<bsl_dft,double>(i,i*8);
+    
     test_inverse<complex_fftw_dft<float>>(i,1);
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
@@ -302,6 +353,10 @@ int main()
   }
   for(auto i : std::vector<int>{2,3,5,7,11,13,17,23,29,31})
   {
+    test_directly<fftw_dft,double>(i,i*8);
+    test_directly<gsl_dft,double>(i,i*8);
+    test_directly<bsl_dft,double>(i,i*8);
+    
     test_inverse<complex_fftw_dft<float>>(i,1);
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
@@ -332,6 +387,10 @@ int main()
   
   for(int i=1;i<=100;++i)
   {
+    test_directly<fftw_dft,double>(i,i*8);
+    test_directly<gsl_dft,double>(i,i*8);
+    test_directly<bsl_dft,double>(i,i*8);
+    
     test_inverse<complex_fftw_dft<float>>(i,1);
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
@@ -381,7 +440,5 @@ int main()
   // TODO: can we print a useful compilation error message for the following
   // illegal case?
   // dft<std::complex<int>> P(3);   
-  
-  
   return boost::math::test::report_errors();
 }
