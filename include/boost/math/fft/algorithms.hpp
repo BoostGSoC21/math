@@ -236,7 +236,7 @@
   
   
   template <class T, class allocator_t>
-  void dft_composite(const T *in_first, 
+  void dft_composite_outofplace(const T *in_first, 
                      const T *in_last, 
                      T* out, 
                      const T e,
@@ -305,8 +305,33 @@
     }
   }
   
+  template<class T,class Allocator_t>
+  void dft_composite_inplace(
+    T* in_first, 
+    T* in_last, 
+    const T e,
+    const Allocator_t& alloc)
+  {
+    std::vector<T,Allocator_t> work_space(in_first,in_last,alloc);
+    dft_composite_outofplace(in_first,in_last,work_space.data(),e,alloc);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class T, class Allocator_t>
+  void dft_composite(
+    const T* in_first, 
+    const T* in_last, 
+    T* out, 
+    const T e,
+    const Allocator_t& alloc)
+  {
+    if(in_first==out)
+      dft_composite_inplace(out,out+std::distance(in_first,in_last),e,alloc);
+    else
+      dft_composite_outofplace(in_first,in_last,out,e,alloc);
+  }
+  
   template <class ComplexType, class allocator_t>
-  void complex_dft_composite(const ComplexType *in_first, 
+  void complex_dft_composite_outofplace(const ComplexType *in_first, 
                              const ComplexType *in_last, 
                              ComplexType* out, 
                              int sign,
@@ -361,7 +386,8 @@
             if(j==0 || k==0)
               tmp[j] = out[i + j*len_old +k ];
             else
-              tmp[j] = out[i + j*len_old +k ] * complex_root_of_unity<ComplexType>(len,k*j*sign);
+              tmp[j] = out[i + j*len_old +k ] 
+                * complex_root_of_unity<ComplexType>(len,k*j*sign);
           
           if(p==2)
             complex_dft_2(tmp.data(),tmp.data(),sign);
@@ -376,6 +402,32 @@
       }
     }
   }
+  
+  template<class complex_value_type,class Allocator_t>
+  void complex_dft_composite_inplace(
+    complex_value_type* in_first, 
+    complex_value_type* in_last, 
+    int sign,
+    const Allocator_t& alloc)
+  {
+    std::vector<complex_value_type,Allocator_t> work_space(in_first,in_last,alloc);
+    complex_dft_composite_outofplace(in_first,in_last,work_space.data(),sign,alloc);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class complex_value_type, class Allocator_t>
+  void complex_dft_composite(
+    const complex_value_type* in_first, 
+    const complex_value_type* in_last, 
+    complex_value_type* out, 
+    int sign,
+    const Allocator_t& alloc)
+  {
+    if(in_first==out)
+      complex_dft_composite_inplace(out,out+std::distance(in_first,in_last),sign,alloc);
+    else
+      complex_dft_composite_outofplace(in_first,in_last,out,sign,alloc);
+  }
+  
   
   template <class T>
   void dft_power2(const T *in_first, const T *in_last, T* out, const T e)
