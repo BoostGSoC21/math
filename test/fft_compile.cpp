@@ -15,41 +15,45 @@
 #include <vector>
 #include <array>
 
-template<template<class ...Args> class backend_t, class T, int N >
+template< class fft_engine,int N >
 void transform_api()
 {   
+  using T = typename fft_engine::value_type;
   using boost::math::fft::transform;
   
   // test same type of iterator
   std::vector<T> A(N),B(A.size());
-  transform<backend_t>::forward(A.begin(),A.end(),B.begin());
-  transform<backend_t>::backward(A.begin(),A.end(),B.begin());
+  transform<fft_engine>::forward(A.begin(),A.end(),B.begin());
+  transform<fft_engine>::backward(A.begin(),A.end(),B.begin());
+  
+  // experimental
+  // backend_t<T,std::allocator<T>>::static_forward(A.begin(),A.end(),B.begin());
   
   // test with raw pointers
-  transform<backend_t>::forward(A.data(),A.data()+A.size(),B.data());
-  transform<backend_t>::backward(A.data(),A.data()+A.size(),B.data());
+  transform<fft_engine>::forward(A.data(),A.data()+A.size(),B.data());
+  transform<fft_engine>::backward(A.data(),A.data()+A.size(),B.data());
 
   const auto & cA = A;
   // const iterator as input
-  transform<backend_t>::forward(cA.begin(),cA.end(),B.begin());
-  transform<backend_t>::backward(cA.begin(),cA.end(),B.begin());
+  transform<fft_engine>::forward(cA.begin(),cA.end(),B.begin());
+  transform<fft_engine>::backward(cA.begin(),cA.end(),B.begin());
   
   // const pointer as input
-  transform<backend_t>::forward(cA.data(),cA.data()+cA.size(),B.data());
-  transform<backend_t>::backward(cA.data(),cA.data()+cA.size(),B.data());
+  transform<fft_engine>::forward(cA.data(),cA.data()+cA.size(),B.data());
+  transform<fft_engine>::backward(cA.data(),cA.data()+cA.size(),B.data());
   
   std::array<T,N> C;
   // input as vector::iterator, output as array::iterator
-  transform<backend_t>::forward(A.begin(),A.end(),C.begin());
-  transform<backend_t>::backward(A.begin(),A.end(),C.begin());
-  transform<backend_t>::forward(A.data(),A.data()+A.size(),C.data());
-  transform<backend_t>::backward(A.data(),A.data()+A.size(),C.data());
+  transform<fft_engine>::forward(A.begin(),A.end(),C.begin());
+  transform<fft_engine>::backward(A.begin(),A.end(),C.begin());
+  transform<fft_engine>::forward(A.data(),A.data()+A.size(),C.data());
+  transform<fft_engine>::backward(A.data(),A.data()+A.size(),C.data());
   
   // input as array::iterator, output as vector::iterator
-  transform<backend_t>::forward(C.begin(),C.end(),B.begin());
-  transform<backend_t>::backward(C.begin(),C.end(),B.begin());
-  transform<backend_t>::forward(C.data(),C.data()+C.size(),B.data());
-  transform<backend_t>::backward(C.data(),C.data()+C.size(),B.data());
+  transform<fft_engine>::forward(C.begin(),C.end(),B.begin());
+  transform<fft_engine>::backward(C.begin(),C.end(),B.begin());
+  transform<fft_engine>::forward(C.data(),C.data()+C.size(),B.data());
+  transform<fft_engine>::backward(C.data(),C.data()+C.size(),B.data());
 }
 
 template<class Backend >
@@ -89,15 +93,15 @@ int main()
   
   test_traits();
   
-  transform_api<fftw_dft,std::complex<float>,      4 >();
-  transform_api<fftw_dft,std::complex<double>,     4 >();
-  transform_api<fftw_dft,std::complex<long double>,4 >();
+  transform_api<fftw_dft<std::complex<float>>,      4 >();
+  transform_api<fftw_dft<std::complex<double>>,     4 >();
+  transform_api<fftw_dft<std::complex<long double>>,4 >();
   
-  transform_api<gsl_dft,std::complex<double>,4 >();
+  transform_api<gsl_dft<std::complex<double>>,4 >();
   
-  transform_api<bsl_dft,std::complex<float>,      4 >();
-  transform_api<bsl_dft,std::complex<double>,     4 >();
-  transform_api<bsl_dft,std::complex<long double>,4 >();
+  transform_api<bsl_dft<std::complex<float>>,      4 >();
+  transform_api<bsl_dft<std::complex<double>>,     4 >();
+  transform_api<bsl_dft<std::complex<long double>>,4 >();
   
   plan_api<fftw_dft<std::complex<double>> >(5);
   plan_api<fftw_dft<std::complex<float>> >(5);

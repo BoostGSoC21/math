@@ -99,8 +99,11 @@ namespace fft { namespace detail {
     };
 } // namespace detail    
   
-  template<class ComplexType, class Allocator_t = std::allocator<ComplexType> >
-  using gsl_dft = detail::dft< detail::gsl_backend<ComplexType,Allocator_t> >;
+  template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
+  using gsl_dft = detail::dft<detail::gsl_backend,RingType,Allocator_t>;
+  
+  using gsl_transform = transform< gsl_dft<> >;
+  
     
 } // namespace fft
 } // namespace math

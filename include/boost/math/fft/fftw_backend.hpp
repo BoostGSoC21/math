@@ -218,8 +218,10 @@
 
   } // namespace detail
   
-  template<class ComplexType, class Allocator_t = std::allocator<ComplexType> >
-  using fftw_dft = detail::dft< detail::fftw_backend<ComplexType,Allocator_t> >;
+  template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
+  using fftw_dft = detail::dft<detail::fftw_backend,RingType,Allocator_t>;
+  
+  using fftw_transform = transform< fftw_dft<> >;
   
   } } } // namespace boost::math::fft
 
