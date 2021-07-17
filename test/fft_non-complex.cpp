@@ -33,9 +33,9 @@ void test_inverse()
   std::vector<M_int> A{4, 3, 2, 1, 0, 0, 0, 0};
   std::vector<M_int> FT_A,FT_FT_A;
 
-  fft::transform<fft::bsl_dft>::forward(A.cbegin(),A.cend(),std::back_inserter(FT_A),w);
+  fft::bsl_transform::forward(A.cbegin(),A.cend(),std::back_inserter(FT_A),w);
 
-  fft::transform<fft::bsl_dft>::backward(FT_A.cbegin(),FT_A.cend(),std::back_inserter(FT_FT_A),w);
+  fft::bsl_transform::backward(FT_A.cbegin(),FT_A.cend(),std::back_inserter(FT_FT_A),w);
 
   std::transform(FT_FT_A.begin(), FT_FT_A.end(), FT_FT_A.begin(),
                  [&inv_8](M_int x) { return x * inv_8; });
@@ -61,8 +61,8 @@ void test_convolution()
   std::vector<M_int> B{8, 7, 6, 5, 0, 0, 0, 0};
 
   // forward FFT
-  fft::transform<fft::bsl_dft>::forward(A.cbegin(),A.cend(),A.begin(), w);
-  fft::transform<fft::bsl_dft>::forward(B.cbegin(),B.cend(),B.begin(), w);
+  fft::bsl_transform::forward(A.cbegin(),A.cend(),A.begin(), w);
+  fft::bsl_transform::forward(B.cbegin(),B.cend(),B.begin(), w);
 
   // convolution in Fourier space
   std::vector<M_int> AB;
@@ -71,7 +71,7 @@ void test_convolution()
                  [](M_int x, M_int y) { return x * y; });
 
   // backwards FFT
-  fft::transform<fft::bsl_dft>::backward(AB.cbegin(),AB.cend(),AB.begin(),w);
+  fft::bsl_transform::backward(AB.cbegin(),AB.cend(),AB.begin(),w);
   std::transform(AB.begin(), AB.end(), AB.begin(),
                  [&inv_8](M_int x) { return x * inv_8; });
 

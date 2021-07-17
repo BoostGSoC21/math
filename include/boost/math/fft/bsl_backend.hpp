@@ -47,6 +47,7 @@
   public:
     using value_type     = RingType;
     using allocator_type = allocator_t;
+    
   private:
     enum plan_type { forward_plan , backward_plan};
     
@@ -211,8 +212,10 @@
   
   } // namespace detail
   
-  template<class RingType, class Allocator_t = std::allocator<RingType> >
-  using bsl_dft = detail::dft< detail::bsl_backend<RingType,Allocator_t> >;
+  template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
+  using bsl_dft = detail::dft<detail::bsl_backend,RingType,Allocator_t>;
+  
+  using bsl_transform = transform< bsl_dft<> >;
   
   } } } // namespace boost::math::fft
 
