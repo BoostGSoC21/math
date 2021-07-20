@@ -178,7 +178,7 @@
   {
     
     template<class RingType, class allocator_t = std::allocator<RingType> >
-    using plan_type = typename dft_plan_t::other< RingType,allocator_t > ;
+    using plan_type = typename dft_plan_t::template other< RingType,allocator_t > ;
     
     
     // std::transform-like Fourier Transform API
