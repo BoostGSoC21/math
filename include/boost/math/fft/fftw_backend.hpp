@@ -43,6 +43,8 @@
     }
 
     static void plan_destroy(plan_type p) { ::fftwf_destroy_plan(p); }
+    
+    static int alignment_of(real_value_type* p) { return ::fftwf_alignment_of(p); }
   };
 
   template<>
@@ -67,6 +69,8 @@
     }
 
     static void plan_destroy(plan_type p) { ::fftw_destroy_plan(p); }
+    
+    static int alignment_of(real_value_type* p) { return ::fftw_alignment_of(p); }
   };
 
   template<>
@@ -91,6 +95,8 @@
     }
 
     static void plan_destroy(plan_type p) { ::fftwl_destroy_plan(p); }
+    
+    static int alignment_of(real_value_type* p) { return ::fftwl_alignment_of(p); }
   };
   #ifdef BOOST_MATH_USE_FLOAT128
   template<>
@@ -116,6 +122,8 @@
     }
 
     static void plan_destroy(plan_type p) { ::fftwq_destroy_plan(p); }
+    
+    static int alignment_of(real_value_type* p) { return ::fftwq_alignment_of(p); }
   };
   #endif
 

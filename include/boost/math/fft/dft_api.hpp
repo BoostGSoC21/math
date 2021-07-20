@@ -13,6 +13,7 @@
   #define BOOST_MATH_DFTAPI_HPP
 
 #include <algorithm>
+#include <vector>
 
   namespace boost { namespace math { namespace fft { 
   namespace detail {
