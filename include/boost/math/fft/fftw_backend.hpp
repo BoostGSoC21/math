@@ -139,6 +139,7 @@
     using real_value_type    = typename NativeComplexType::value_type;
     using plan_type          = typename detail::fftw_traits_c_interface<real_value_type>::plan_type;
     using complex_value_type = typename detail::select_complex<real_value_type>::type;
+    using fftw_real_value_type = typename detail::fftw_traits_c_interface<real_value_type>::real_value_type;
    
     void execute(plan_type plan, plan_type unaligned_plan, const complex_value_type* in, complex_value_type* out) const
     {
@@ -148,7 +149,7 @@
         std::copy(in,in+size(),out);
       
       const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
-                reinterpret_cast<real_value_type*>(out));
+                reinterpret_cast<fftw_real_value_type*>(out));
                 
       if(out_alignment==ref_alignment)
         detail::fftw_traits_c_interface<real_value_type>::plan_execute
