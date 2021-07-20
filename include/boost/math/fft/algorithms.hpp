@@ -14,26 +14,25 @@
   #include <cmath>
   #include <vector>
   #include <boost/math/constants/constants.hpp>
-  #include <boost/math/fft/abstract_ring.hpp>
   #include <boost/math/fft/discrete_maths.hpp>
+  #include <boost/container/static_vector.hpp>
   
 
 
   namespace boost { namespace math {  namespace fft {
   
-  template<template<class U> class backend,
-           typename InputIterator1,
+  namespace detail {
+  
+  template<typename InputIterator1,
            typename InputIterator2,
-           typename OutputIterator>
-  void convolution(InputIterator1 input1_begin,
+           typename OutputIterator,
+           typename allocator_t >
+  void raw_convolution(InputIterator1 input1_begin,
                    InputIterator1 input1_end,
                    InputIterator2 input2_begin,
-                   OutputIterator output);
+                   OutputIterator output,
+                   const allocator_t& alloc);
   
-  template<class RingType>
-  class bsl_dft;
-
-  namespace detail {
   
   template<class ComplexType>
   ComplexType complex_root_of_unity(long n,long p=1)
@@ -88,26 +87,18 @@
   }
   
   template<class T>
-  void dft_prime_bruteForce(const T* in_first, const T* in_last, T* out, const T w)
+  void dft_prime_bruteForce_outofplace(const T* in_first, const T* in_last, T* out, const T w)
   /*
     assumptions: 
     - allocated memory in out is enough to hold distance(in_first,in_last) element,
+    - out!=in
   */
   {
     const long N = static_cast<long>(std::distance(in_first,in_last));
     if(N<=0)
       return;
     
-    std::unique_ptr<T> mem;
-    T* work_space = out;
-    
-    if(in_first == out)
-    {
-      mem.reset(new T[N]);
-      work_space = mem.get();
-    }
-    
-    work_space[0] = std::accumulate(in_first+1,in_last,in_first[0]);
+    out[0] = std::accumulate(in_first+1,in_last,in_first[0]);
     
     T wi=w;
     for(long i=1;i<N;++i, wi*=w)
@@ -118,38 +109,50 @@
       {
         sum += in_first[j]*wij;
       }
-      work_space[i] = sum;
+      out[i] = sum;
     }
-    
-    if(out != work_space)
-      std::copy(work_space,work_space+N,out);
+  }
+  template<class T,class allocator_t>
+  void dft_prime_bruteForce_inplace(
+    T* in_first, 
+    T* in_last, 
+    const T w, 
+    const allocator_t& alloc)
+  {
+    std::vector<T,allocator_t> work_space(in_first,in_last,alloc);
+    dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),w);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class T, class allocator_t>
+  void dft_prime_bruteForce(
+    const T* in_first, 
+    const T* in_last, 
+    T* out, 
+    const T w, 
+    const allocator_t& alloc)
+  {
+    if(in_first==out)
+      dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),w,alloc);
+    else
+      dft_prime_bruteForce_outofplace(in_first,in_last,out,w);
   }
   
   template<class complex_value_type>
-  void complex_dft_prime_bruteForce(
+  void complex_dft_prime_bruteForce_outofplace(
     const complex_value_type* in_first, 
     const complex_value_type* in_last, 
     complex_value_type* out, int sign)
   /*
     assumptions: 
     - allocated memory in out is enough to hold distance(in_first,in_last) element,
+    - out!=in
   */
   {
     const long N = static_cast<long>(std::distance(in_first,in_last));
     if(N<=0)
       return;
     
-    std::unique_ptr<complex_value_type> mem;
-    complex_value_type* work_space = out;
-    
-    if(in_first == out)
-    {
-      mem.reset(new complex_value_type[N]);
-      work_space = mem.get();
-    }
-    
-    work_space[0] = std::accumulate(in_first+1,in_last,in_first[0]);
-    
+    out[0] = std::accumulate(in_first+1,in_last,in_first[0]);
     
     for(long i=1;i<N;++i)
     {
@@ -158,26 +161,51 @@
       {
         sum += in_first[j] * complex_root_of_unity<complex_value_type>(N,i*j*sign);
       }
-      work_space[i] = sum;
+      out[i] = sum;
     }
-    
-    if(out != work_space)
-      std::copy(work_space,work_space+N,out);
+  }
+  
+  template<class complex_value_type,class Allocator_t>
+  void complex_dft_prime_bruteForce_inplace(
+    complex_value_type* in_first, 
+    complex_value_type* in_last, 
+    int sign,
+    const Allocator_t& alloc)
+  {
+    std::vector<complex_value_type,Allocator_t> work_space(in_first,in_last,alloc);
+    complex_dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),sign);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class complex_value_type, class Allocator_t>
+  void complex_dft_prime_bruteForce(
+    const complex_value_type* in_first, 
+    const complex_value_type* in_last, 
+    complex_value_type* out, 
+    int sign,
+    const Allocator_t& alloc)
+  {
+    if(in_first==out)
+      complex_dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),sign,alloc);
+    else
+      complex_dft_prime_bruteForce_outofplace(in_first,in_last,out,sign);
   }
   
   /*
     Rader's FFT on prime sizes
   */
-  template<class complex_value_type>
+  template<class complex_value_type, class allocator_t>
   void complex_dft_prime_rader(
     const complex_value_type *in_first, 
     const complex_value_type *in_last, 
-    complex_value_type* out, int sign)
+    complex_value_type* out, 
+    int sign,
+    const allocator_t& alloc = allocator_t{})
   // precondition: distance(in_first,in_last) is prime > 2
   {
+    using allocator_type = allocator_t;
     const long my_n = static_cast<long>(std::distance(in_first,in_last));
     
-    std::vector<complex_value_type> A(my_n-1),W(my_n-1),B(my_n-1);
+    std::vector<complex_value_type,allocator_type> A(my_n-1,alloc),W(my_n-1,alloc),B(my_n-1,alloc);
     
     const long g = primitive_root(my_n);
     const long g_inv = power_mod(g,my_n-2,my_n);
@@ -188,7 +216,7 @@
       A[i] = in_first[ power_mod(g,i+1,my_n) ];
     }
     
-    ::boost::math::fft::convolution<bsl_dft>(A.begin(),A.end(),W.begin(),B.begin());
+    raw_convolution(A.begin(),A.end(),W.begin(),B.begin(),alloc);
     
     complex_value_type a0 = in_first[0];
     complex_value_type sum_a {a0};
@@ -207,13 +235,19 @@
   }
   
   
-  template <class T>
-  void dft_composite(const T *in_first, const T *in_last, T* out, const T e)
+  template <class T, class allocator_t>
+  void dft_composite(const T *in_first, 
+                     const T *in_last, 
+                     T* out, 
+                     const T e,
+                     const allocator_t& alloc)
   {
     /*
       Cooley-Tukey mapping, intrinsically out-of-place, Decimation in Time
       composite sizes.
     */
+    using allocator_type = allocator_t;
+    
     const long n = static_cast<unsigned int>(std::distance(in_first,in_last));
     if(n <=0 )
       return;
@@ -223,32 +257,35 @@
         out[0]=in_first[0];
         return;
     }
-    auto prime_factors = prime_factorization(n);
+    std::array<int,32> prime_factors;
+    const int nfactors = prime_factorization(n,prime_factors.begin());
     
     // reorder input
     for (long i = 0; i < n; ++i)
     {
         long j = 0, k = i;
-        for (auto p : prime_factors)
+        for (int ip=0;ip<nfactors;++ip)
         {
+            int p = prime_factors[ip];    
             j = j * p + k % p;
             k /= p;
         }
         out[j] = in_first[i];
     }
     
-    std::reverse(prime_factors.begin(), prime_factors.end());
+    std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
     
     // butterfly pattern
     long len = 1;
-    for (auto p : prime_factors)
+    for (int ip=0;ip<nfactors;++ip)
     {
+      int p = prime_factors[ip];
       long len_old = len;
       len *= p;
       T w_len = power(e, n / len);
       T w_p = power(e,n/p);
       
-      std::vector<T> tmp(p);
+      std::vector<T,allocator_type> tmp(p,alloc);
       for (long i = 0; i < n; i += len)
       {
         for(long k=0;k<len_old;++k)
@@ -259,7 +296,7 @@
             else
               tmp[j] = out[i + j*len_old +k ] * power(w_len,k*j);
           
-          dft_prime_bruteForce(tmp.data(),tmp.data()+p,tmp.data(),w_p);
+          dft_prime_bruteForce_inplace(tmp.data(),tmp.data()+p,w_p,alloc);
           
           for(long j=0;j<p;++j)
             out[i+ j*len_old + k] = tmp[j];
@@ -268,13 +305,18 @@
     }
   }
   
-  template <class ComplexType>
-  void complex_dft_composite(const ComplexType *in_first, const ComplexType *in_last, ComplexType* out, int sign)
+  template <class ComplexType, class allocator_t>
+  void complex_dft_composite(const ComplexType *in_first, 
+                             const ComplexType *in_last, 
+                             ComplexType* out, 
+                             int sign,
+                             const allocator_t& alloc)
   {
     /*
       Cooley-Tukey mapping, intrinsically out-of-place, Decimation in Time
       composite sizes.
     */
+    using allocator_type = allocator_t;
     const long n = static_cast<long>(std::distance(in_first,in_last));
     if(n <=0 )
       return;
@@ -284,30 +326,33 @@
         out[0]=in_first[0];
         return;
     }
-    auto prime_factors = prime_factorization(n);
+    std::array<int,32> prime_factors;
+    const int nfactors = prime_factorization(n,prime_factors.begin());
     
     // reorder input
     for (long i = 0; i < n; ++i)
     {
         long j = 0, k = i;
-        for (auto p : prime_factors)
+        for (int ip=0;ip<nfactors;++ip)
         {
+            int p = prime_factors[ip];
             j = j * p + k % p;
             k /= p;
         }
         out[j] = in_first[i];
     }
     
-    std::reverse(prime_factors.begin(), prime_factors.end());
+    std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
     
     // butterfly pattern
     long len = 1;
-    for (auto p : prime_factors)
+    for (int ip=0;ip<nfactors;++ip)
     {
+      int p = prime_factors[ip];
       long len_old = len;
       len *= p;
       
-      std::vector<ComplexType> tmp(p);
+      std::vector<ComplexType,allocator_type> tmp(p,alloc);
       for (long i = 0; i < n; i += len)
       {
         for(long k=0;k<len_old;++k)
@@ -323,7 +368,7 @@
           else
           {
           //  complex_dft_prime_bruteForce(tmp.data(),tmp.data()+p,tmp.data(),sign);
-            complex_dft_prime_rader(tmp.data(),tmp.data()+p,tmp.data(),sign);
+            complex_dft_prime_rader(tmp.data(),tmp.data()+p,tmp.data(),sign,alloc);
           }
           for(long j=0;j<p;++j)
             out[i+ j*len_old + k] = tmp[j];
@@ -352,7 +397,7 @@
     // auto _1 = T{1};
     
     int nbits = 0;
-    std::vector<T> e2{e};
+    ::boost::container::static_vector<T,32> e2{e};
     for (int m = n / 2; m > 0; m >>= 1, ++nbits)
       e2.push_back(e2.back() * e2.back());
 
@@ -396,7 +441,8 @@
   void complex_dft_power2(
     const complex_value_type *in_first, 
     const complex_value_type *in_last, 
-    complex_value_type* out, int sign)
+    complex_value_type* out, 
+    int sign)
   {
     // Naive in-place complex DFT.
     const long ptrdiff = static_cast<long>(std::distance(in_first,in_last));
@@ -448,6 +494,55 @@
     }
 
     // Normalize for backwards transform (done externally).
+  }
+  
+  template<typename InputIterator1,
+           typename InputIterator2,
+           typename OutputIterator,
+           typename allocator_t  >
+  void raw_convolution(InputIterator1 input1_begin,
+                   InputIterator1 input1_end,
+                   InputIterator2 input2_begin,
+                   OutputIterator output,
+                   const allocator_t& alloc)
+  {
+    using input_value_type = typename std::iterator_traits<InputIterator1>::value_type;
+    using real_value_type  = typename input_value_type::value_type;
+    using allocator_type   = allocator_t;
+    
+    const long N = std::distance(input1_begin,input1_end);
+    const long N_extended = detail::is_power2(N) ? N : detail::upper_bound_power2(2*N-1);
+    
+    std::vector<input_value_type, allocator_type> In1(N_extended,alloc),In2(N_extended,alloc),Out(N_extended,alloc);
+    
+    std::copy(input1_begin,input1_end,In1.begin());
+    
+    InputIterator2 input2_end{input2_begin};
+    std::advance(input2_end,N);
+    std::copy(input2_begin,input2_end,In2.begin());
+    
+    // padding
+    for(long i=N;i<N_extended;++i)
+      In1[i]=In2[i]=input_value_type{0};
+    
+    // fake N-periodicity
+    if(N!=N_extended)
+    for(long i=1;i<N;++i)
+      In2[N_extended-N+i] = In2[i];
+    
+    complex_dft_power2(In1.data(),In1.data()+In1.size(),In1.data(),1);
+    complex_dft_power2(In2.data(),In2.data()+In1.size(),In2.data(),1);
+    
+    // direct convolution
+    std::transform(In1.begin(),In1.end(),In2.begin(),Out.begin(),std::multiplies<input_value_type>()); 
+    
+    complex_dft_power2(Out.data(),Out.data()+Out.size(),Out.data(),-1);
+    
+    const real_value_type inv_N = real_value_type{1}/N_extended;
+    for(auto & x : Out)
+        x *= inv_N;
+    
+    std::copy(Out.begin(),Out.begin() + N,output);
   }
   
 
