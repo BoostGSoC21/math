@@ -140,25 +140,38 @@
     using plan_type          = typename detail::fftw_traits_c_interface<real_value_type>::plan_type;
     using complex_value_type = typename detail::select_complex<real_value_type>::type;
    
-    void execute(plan_type plan, const complex_value_type* in, complex_value_type* out) const
+    void execute(plan_type plan, plan_type unaligned_plan, const complex_value_type* in, complex_value_type* out) const
     {
       using local_complex_type = typename detail::fftw_traits_c_interface<real_value_type>::complex_value_type;
       
       if(in!=out) // We have to copy, because fftw plan is forced to be in-place: from: nullptr, to: nullptr
         std::copy(in,in+size(),out);
-
-      detail::fftw_traits_c_interface<real_value_type>::plan_execute
-      (
-        plan,
-        reinterpret_cast<local_complex_type*>(out),
-        reinterpret_cast<local_complex_type*>(out)
-      );
+      
+      const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
+                reinterpret_cast<real_value_type*>(out));
+                
+      if(out_alignment==ref_alignment)
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute
+        (
+          plan,
+          reinterpret_cast<local_complex_type*>(out),
+          reinterpret_cast<local_complex_type*>(out)
+        );
+      else
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute
+        (
+          unaligned_plan,
+          reinterpret_cast<local_complex_type*>(out),
+          reinterpret_cast<local_complex_type*>(out)
+        );
     }
     
     void free()
     {
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_forward_plan);
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_backward_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_forward_unaligned_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_backward_unaligned_plan);
     }
     void alloc()
     {
@@ -180,11 +193,31 @@
           FFTW_BACKWARD, 
           FFTW_ESTIMATE | FFTW_PRESERVE_INPUT
         );
+      my_forward_unaligned_plan = 
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_FORWARD,  
+          FFTW_ESTIMATE | FFTW_PRESERVE_INPUT | FFTW_UNALIGNED
+        );
+      my_backward_unaligned_plan =
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_BACKWARD, 
+          FFTW_ESTIMATE | FFTW_PRESERVE_INPUT | FFTW_UNALIGNED
+        );
     }
 
   public:
     fftw_backend(std::size_t n, const allocator_type& = allocator_type{} )
-      : my_size{ n }
+      : my_size{ n },
+        ref_alignment{
+            detail::fftw_traits_c_interface<real_value_type>::alignment_of(nullptr)}
     {
       // For C++11, this line needs to be constexpr-ified.
       // Then we could restore the constexpr-ness of this constructor.
@@ -210,18 +243,21 @@
     
     void forward(const complex_value_type* in, complex_value_type* out) const
     {
-      execute(my_forward_plan, in, out);  
+      execute(my_forward_plan, my_forward_unaligned_plan, in, out);  
     }
 
     void backward(const complex_value_type* in, complex_value_type* out) const
     {
-      execute(my_backward_plan, in, out);  
+      execute(my_backward_plan, my_backward_unaligned_plan, in, out);  
     }
 
   private:
     std::size_t my_size;
+    const int   ref_alignment;
     plan_type   my_forward_plan;
     plan_type   my_backward_plan;
+    plan_type   my_forward_unaligned_plan;
+    plan_type   my_backward_unaligned_plan;
   };
 
   } // namespace detail
