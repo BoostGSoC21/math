@@ -42,7 +42,7 @@ void transform_api()
   transform<fft_engine>::forward(cA.data(),cA.data()+cA.size(),B.data());
   transform<fft_engine>::backward(cA.data(),cA.data()+cA.size(),B.data());
   
-  std::array<T,N> C;
+  alignas(16) std::array<T,N> C; // lets temporarily align this array here to avoid seg. fault
   // input as vector::iterator, output as array::iterator
   transform<fft_engine>::forward(A.begin(),A.end(),C.begin());
   transform<fft_engine>::backward(A.begin(),A.end(),C.begin());
