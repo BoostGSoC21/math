@@ -13,6 +13,7 @@
 
   #include <fftw3.h>
   #include <boost/math/fft/dft_api.hpp>
+  #include <boost/math/fft/abstract_ring.hpp>
 
   namespace boost { namespace math {  namespace fft {
 
