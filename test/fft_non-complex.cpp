@@ -51,8 +51,8 @@ void test_convolution()
   using the convolution theorem
 */
 {
-  typedef fft::my_modulo_lib::field_modulo<int, 337> Z337;
-  using M_int = fft::my_modulo_lib::mint<Z337>;
+  typedef fft::my_modulo_lib::field_modulo<int, 337> local_Z337;
+  using M_int = fft::my_modulo_lib::mint<local_Z337>;
   const M_int w{85};
   const M_int inv_8{M_int{8}.inverse()};
 

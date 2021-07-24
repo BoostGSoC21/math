@@ -5,7 +5,7 @@
     default fft engine
 */
 
-#include <boost/math/fft.hpp>
+#include <boost/math/fft/bsl_backend.hpp>
 
 #include <iostream>
 #include <vector>
