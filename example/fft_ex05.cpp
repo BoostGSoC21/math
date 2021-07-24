@@ -19,9 +19,9 @@
 #include <boost/multiprecision/complex128.hpp>
 #endif
 
-#include <boost/math/fft.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
+#include <boost/math/fft/bsl_backend.hpp>
 #include <boost/core/demangle.hpp>
 #include <iostream>
 #include <vector>
@@ -34,16 +34,17 @@ void print(const std::vector< T >& V)
         std::cout << "V[" << i << "] = " << std::setprecision(std::numeric_limits<typename T::value_type>::digits10 + 4)
             << V[i].real() << ", " << V[i].imag() << '\n';
 }
+
 template<class Complex>
 void test_bsl() {
     std::cout << "BSL engine with " << boost::core::demangle(typeid(Complex).name()) << "\n";
     std::cout << "Real type is    " << boost::core::demangle(typeid(typename Complex::value_type).name()) << "\n";
     std::vector< Complex > A{1.0,2.0,3.0,4.0},B(A.size());
     // forward transform, out-of-place
-    boost::math::fft::dft_forward(A.cbegin(),A.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::bsl_dft<Complex>>::forward(A.cbegin(),A.cend(),B.begin());
     print(B);
     // backward transform, in-place
-    boost::math::fft::dft_backward(B.cbegin(),B.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::bsl_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
 
@@ -52,10 +53,10 @@ void test_fftw() {
     std::cout << "FFTW engine with " << boost::core::demangle(typeid(Complex).name()) << "\n";
     std::vector< Complex > A{1.0,2.0,3.0,4.0},B(A.size());
     // forward transform, out-of-place
-    boost::math::fft::dft_forward<boost::math::fft::fftw_dft>(A.cbegin(),A.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::fftw_dft<Complex>>::forward(A.cbegin(),A.cend(),B.begin());
     print(B);
     // backward transform, in-place
-    boost::math::fft::dft_backward<boost::math::fft::fftw_dft>(B.cbegin(),B.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::fftw_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
 
@@ -64,10 +65,10 @@ void test_gsl() {
     std::cout << "GSL engine with " << boost::core::demangle(typeid(Complex).name()) << "\n";
     std::vector< Complex > A{1.0,2.0,3.0,4.0},B(A.size());
     // forward transform, out-of-place
-    boost::math::fft::dft_forward<boost::math::fft::gsl_dft>(A.cbegin(),A.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::gsl_dft<Complex>>::forward(A.cbegin(),A.cend(),B.begin());
     print(B);
     // backward transform, in-place
-    boost::math::fft::dft_backward<boost::math::fft::gsl_dft>(B.cbegin(),B.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::gsl_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
 
