@@ -109,7 +109,7 @@ and a C++11 lambda function combined with `std::for_each()`.
 
   std::size_t size = 32U;
   //cpp_bin_float_50 p = pi<cpp_bin_float_50>();
-  cpp_bin_float_50 p = boost::math::constants::pi<cpp_bin_float_50>();
+//cpp_bin_float_50 p = boost::math::constants::pi<cpp_bin_float_50>(); // unused variable warning. It uses the   using boost::math::constants::pi;   written above.
 
   std::vector <cpp_bin_float_50> sin_values (size);
   unsigned n = 1U;
