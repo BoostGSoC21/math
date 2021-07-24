@@ -1471,5 +1471,10 @@ test-suite fft :
    [ run fft_non-complex.cpp ]
    [ run fft_auxiliary_functions.cpp ]
    [ run fft_alignment.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ]
+   [ run ../example/fft_ex01.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ]
+   [ run ../example/fft_ex02.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ]
+   [ run ../example/fft_ex03.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ]
+   [ run ../example/fft_ex04.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ]
+   [ run ../example/fft_ex05.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ]
    #[ compile-fail fft_compile-fail.cpp  ]
 ;
