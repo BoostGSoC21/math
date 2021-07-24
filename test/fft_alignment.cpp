@@ -6,15 +6,24 @@
 //  Version 1.0. (See accompanying file LICENSE_1_0.txt
 //  or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <boost/config.hpp>
+#include <boost/multiprecision/number.hpp>
+#ifdef BOOST_MATH_USE_FLOAT128
+#include <boost/multiprecision/complex128.hpp>
+#endif
 #include <boost/math/fft/fftw_backend.hpp>
 
 #include <array>
 #include <complex>
 
+#include <boost/core/demangle.hpp>
+#include <iostream>
+
 template<class Backend, int N >
 void test()
 {
   using T = typename Backend::value_type;
+  std::cout << "Testing: " << boost::core::demangle(typeid(T).name()) << "\n";
   Backend P(N);    
   alignas(1)  std::array<T,N> A;
   alignas(16) std::array<T,N> B;
@@ -35,6 +44,9 @@ int main()
   test<fftw_dft<std::complex<float>>,      16 >();
   test<fftw_dft<std::complex<double>>,     16 >();
   test<fftw_dft<std::complex<long double>>,16 >();
+#ifdef BOOST_MATH_USE_FLOAT128
+  test<fftw_dft<boost::multiprecision::complex128>,16 >();
+#endif
   return 0;
 }
 
