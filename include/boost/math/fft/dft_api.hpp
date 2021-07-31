@@ -37,11 +37,88 @@
       -> right distributivity, ie. (b+c)*a == b*a + c*a
   */
   
+  template<typename T, typename allocator_t>
+  class executor_T2T
+  {
+    public:
+    using value_type = T;
+    using allocator_type = allocator_t;
+    
+    private:
+    std::vector<T,allocator_type> my_mem;
+    
+    public:
+    constexpr executor_T2T(const allocator_type& in_alloc = allocator_type{} )
+      : my_mem(in_alloc) 
+    { }
+    
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType >
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      EngineType engine, 
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type*>::value == true)
+                               && (std::is_convertible<OutputIteratorType,       value_type*>::value == true))>::type* = nullptr)
+    {
+      engine(in_first,out);
+    }
+    
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType>
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      EngineType engine,
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type*>::value == false)
+                               && (std::is_convertible<OutputIteratorType,       value_type*>::value == true))>::type* = nullptr)
+    {
+      std::copy(in_first, in_last, out);
+      engine(out,out);
+    }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType>
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      EngineType engine,
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type*>::value == true)
+                               && (std::is_convertible<OutputIteratorType,       value_type*>::value == false))>::type* = nullptr)
+    {
+      my_mem.resize(std::distance(in_first,in_last));
+      engine(in_first,my_mem.data());
+      std::copy(std::begin(my_mem), std::end(my_mem), out);
+    }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType>
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      EngineType engine,
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type*>::value == false)
+                               && (std::is_convertible<OutputIteratorType,       value_type*>::value == false))>::type* = nullptr)
+    {
+      my_mem.resize(std::distance(in_first,in_last));
+      std::copy(in_first, in_last, std::begin(my_mem));
+      engine(my_mem.data(),my_mem.data());
+      std::copy(std::begin(my_mem),std::end(my_mem), out);
+    }
+    
+  };
+  
   template< template<class ... Args> class BackendType, class T, class allocator_t >
-  class dft : public BackendType<T,allocator_t>
+  class dft : public BackendType<T,allocator_t> , public executor_T2T<T,allocator_t>
   {
     public:
     using base_type       = BackendType<T,allocator_t>;
+    using executor_type   = executor_T2T<T,allocator_t>;
+    
     using value_type      = typename base_type::value_type;
     using allocator_type  = typename base_type::allocator_type;
     
@@ -51,96 +128,20 @@
     private:
     using RingType = value_type;
     allocator_type alloc;
-    std::vector<value_type,allocator_type> my_mem;
     enum class execution_type { forward, backward };
     
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
-    void execute(
-      execution_type ex,
-      InputIteratorType in_first, InputIteratorType in_last,
-      OutputIteratorType out,
-      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const RingType*>::value == true)
-                               && (std::is_convertible<OutputIteratorType,       RingType*>::value == true))>::type* = nullptr)
-    {
-      resize(std::distance(in_first,in_last));
-      
-      if(ex==execution_type::backward)
-        base_type::backward(in_first,out);
-      else
-        base_type::forward(in_first,out);
-    }
     
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
-    void execute(
-      execution_type ex,
-      InputIteratorType in_first, InputIteratorType in_last,
-      OutputIteratorType out,
-      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const RingType*>::value == false)
-                               && (std::is_convertible<OutputIteratorType,       RingType*>::value == true))>::type* = nullptr)
-    {
-      resize(std::distance(in_first,in_last));
-      std::copy(in_first, in_last, out);
-      
-      if(ex==execution_type::backward)
-        base_type::backward(out,out);
-      else
-        base_type::forward(out,out);
-    }
-
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
-    void execute(
-      execution_type ex,
-      InputIteratorType in_first, InputIteratorType in_last,
-      OutputIteratorType out,
-      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const RingType*>::value == true)
-                               && (std::is_convertible<OutputIteratorType,       RingType*>::value == false))>::type* = nullptr)
-    {
-      resize(std::distance(in_first,in_last));
-      my_mem.resize(size());
-
-      if(ex==execution_type::backward)
-        base_type::backward(in_first,my_mem.data());
-      else
-        base_type::forward(in_first,my_mem.data());
-
-      std::copy(std::begin(my_mem), std::end(my_mem), out);
-    }
-
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
-    void execute(
-      execution_type ex,
-      InputIteratorType in_first, InputIteratorType in_last,
-      OutputIteratorType out,
-      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const RingType*>::value == false)
-                               && (std::is_convertible<OutputIteratorType,       RingType*>::value == false))>::type* = nullptr)
-    {
-      resize(std::distance(in_first,in_last));
-      my_mem.resize(size());
-      std::copy(in_first, in_last, std::begin(my_mem));
-
-      if(ex==execution_type::backward)
-        base_type::backward(my_mem.data(),my_mem.data());
-      else
-        base_type::forward(my_mem.data(),my_mem.data());
-        
-      std::copy(std::begin(my_mem),std::end(my_mem), out);
-    }
-
   public:
     using base_type::size;
     using base_type::resize;
 
     // complex types ctor. n: the size of the dft
     constexpr dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
-      : base_type(n,in_alloc), alloc{in_alloc}, my_mem{in_alloc} { }
+      : base_type(n,in_alloc), executor_type(in_alloc), alloc{in_alloc} { }
 
     // ring types ctor. n: the size of the dft, w: an n-root of unity
     constexpr dft(unsigned int n, RingType w, const allocator_type& in_alloc = allocator_type{} ) 
-      : base_type( n, w, in_alloc ), alloc{in_alloc}, my_mem{in_alloc} { }
+      : base_type( n, w, in_alloc ), executor_type(in_alloc), alloc{in_alloc} { }
 
     template<typename InputIteratorType,
              typename OutputIteratorType>
@@ -148,7 +149,12 @@
       InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out)
     {
-      execute(execution_type::forward,in_first,in_last,out);
+      resize(std::distance(in_first,in_last));
+      executor_type::execute(in_first,in_last,out,
+        [this](const RingType* i, RingType* o)
+        {
+          base_type::forward(i,o);
+        });
     }
 
     template<typename InputIteratorType,
@@ -157,19 +163,13 @@
       InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out)
     {
-      execute(execution_type::backward,in_first,in_last,out);
+      resize(std::distance(in_first,in_last));
+      executor_type::execute(in_first,in_last,out,
+        [this](const RingType* i, RingType* o)
+        {
+          base_type::backward(i,o);
+        });
     }
-    
-    // experimental
-    // template<typename InputIterator,
-    //          typename OutputIterator>
-    // static void static_forward(InputIterator  input_begin,
-    //                  InputIterator  input_end,
-    //                  OutputIterator output)
-    // {
-    //   base_type plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
-    //   plan.forward(input_begin, output);
-    // }
   };
   
   } // namespace detail
