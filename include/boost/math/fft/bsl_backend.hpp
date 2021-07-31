@@ -213,7 +213,7 @@
   } // namespace detail
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
-  using bsl_dft = detail::dft<detail::bsl_backend,RingType,Allocator_t>;
+  using bsl_dft = detail::complex_dft<detail::bsl_backend,RingType,Allocator_t>;
   
   using bsl_transform = transform< bsl_dft<> >;
   

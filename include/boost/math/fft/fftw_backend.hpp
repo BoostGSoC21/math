@@ -36,11 +36,31 @@
     { 
       return ::fftwf_plan_dft_1d(n, in, out, sign, flags); 
     }
-
+    static plan_type plan_construct_r2c(
+      int n, real_value_type* in, complex_value_type* out, unsigned int flags) 
+    { 
+      return ::fftwf_plan_dft_r2c_1d(n, in, out, flags); 
+    }
+    static plan_type plan_construct_c2r(
+      int n, complex_value_type* in, real_value_type* out, unsigned int flags) 
+    { 
+      return ::fftwf_plan_dft_c2r_1d(n, in, out, flags); 
+    }
+    
     static void plan_execute(
       plan_type plan, complex_value_type* in, complex_value_type* out) 
     { 
       ::fftwf_execute_dft(plan, in, out); 
+    }
+    static void plan_execute_r2c(
+      plan_type plan, real_value_type* in, complex_value_type* out) 
+    { 
+      ::fftwf_execute_dft_r2c(plan, in, out); 
+    }
+    static void plan_execute_c2r(
+      plan_type plan, complex_value_type* in, real_value_type* out) 
+    { 
+      ::fftwf_execute_dft_c2r(plan, in, out); 
     }
 
     static void plan_destroy(plan_type p) { ::fftwf_destroy_plan(p); }
@@ -62,11 +82,31 @@
     { 
       return ::fftw_plan_dft_1d(n, in, out, sign, flags); 
     }
+    static plan_type plan_construct_r2c(
+      int n, real_value_type* in, complex_value_type* out, unsigned int flags) 
+    { 
+      return ::fftw_plan_dft_r2c_1d(n, in, out, flags); 
+    }
+    static plan_type plan_construct_c2r(
+      int n, complex_value_type* in, real_value_type* out, unsigned int flags) 
+    { 
+      return ::fftw_plan_dft_c2r_1d(n, in, out, flags); 
+    }
 
     static void plan_execute(
       plan_type plan, complex_value_type* in, complex_value_type* out) 
     { 
       ::fftw_execute_dft(plan, in, out); 
+    }
+    static void plan_execute_r2c(
+      plan_type plan, real_value_type* in, complex_value_type* out) 
+    { 
+      ::fftw_execute_dft_r2c(plan, in, out); 
+    }
+    static void plan_execute_c2r(
+      plan_type plan, complex_value_type* in, real_value_type* out) 
+    { 
+      ::fftw_execute_dft_c2r(plan, in, out); 
     }
 
     static void plan_destroy(plan_type p) { ::fftw_destroy_plan(p); }
@@ -88,11 +128,31 @@
     { 
       return ::fftwl_plan_dft_1d(n, in, out, sign, flags); 
     }
+    static plan_type plan_construct_r2c(
+      int n, real_value_type* in, complex_value_type* out, unsigned int flags) 
+    { 
+      return ::fftwl_plan_dft_r2c_1d(n, in, out, flags); 
+    }
+    static plan_type plan_construct_c2r(
+      int n, complex_value_type* in, real_value_type* out, unsigned int flags) 
+    { 
+      return ::fftwl_plan_dft_c2r_1d(n, in, out, flags); 
+    }
 
     static void plan_execute(
       plan_type plan, complex_value_type* in, complex_value_type* out) 
     { 
       ::fftwl_execute_dft(plan, in, out); 
+    }
+    static void plan_execute_r2c(
+      plan_type plan, real_value_type* in, complex_value_type* out) 
+    { 
+      ::fftwl_execute_dft_r2c(plan, in, out); 
+    }
+    static void plan_execute_c2r(
+      plan_type plan, complex_value_type* in, real_value_type* out) 
+    { 
+      ::fftwl_execute_dft_c2r(plan, in, out); 
     }
 
     static void plan_destroy(plan_type p) { ::fftwl_destroy_plan(p); }
@@ -115,11 +175,31 @@
     {
       return ::fftwq_plan_dft_1d(n, (real_value_type(*)[2])in, (real_value_type(*)[2])out, sign, flags);
     }
+    static plan_type plan_construct_r2c(
+      int n, real_value_type* in, complex_value_type* out, unsigned int flags) 
+    { 
+      return ::fftwq_plan_dft_r2c_1d(n, in, (real_value_type(*)[2])out, flags); 
+    }
+    static plan_type plan_construct_c2r(
+      int n, complex_value_type* in, real_value_type* out, unsigned int flags) 
+    { 
+      return ::fftwq_plan_dft_c2r_1d(n, (real_value_type(*)[2])in, out, flags); 
+    }
 
     static void plan_execute(
       plan_type plan, complex_value_type* in, complex_value_type* out)
     {
       ::fftwq_execute_dft(plan, (real_value_type(*)[2])in, (real_value_type(*)[2])out);
+    }
+    static void plan_execute_r2c(
+      plan_type plan, real_value_type* in, complex_value_type* out) 
+    { 
+      ::fftwq_execute_dft_r2c(plan, in, (real_value_type(*)[2]) out); 
+    }
+    static void plan_execute_c2r(
+      plan_type plan, complex_value_type* in, real_value_type* out) 
+    { 
+      ::fftwq_execute_dft_c2r(plan,(real_value_type(*)[2]) in, out); 
     }
 
     static void plan_destroy(plan_type p) { ::fftwq_destroy_plan(p); }
@@ -174,6 +254,11 @@
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_backward_plan);
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_forward_unaligned_plan);
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_backward_unaligned_plan);
+      
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2c_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_c2r_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2c_unaligned_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_c2r_unaligned_plan);
     }
     void alloc()
     {
@@ -211,6 +296,39 @@
           nullptr, 
           nullptr, 
           FFTW_BACKWARD, 
+          FFTW_ESTIMATE | FFTW_PRESERVE_INPUT | FFTW_UNALIGNED
+        );
+      
+      my_r2c_plan = 
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_r2c
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE | FFTW_PRESERVE_INPUT
+        );
+      my_c2r_plan =
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_c2r
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE | FFTW_PRESERVE_INPUT
+        );
+      my_r2c_unaligned_plan = 
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_r2c
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE | FFTW_PRESERVE_INPUT | FFTW_UNALIGNED
+        );
+      my_c2r_unaligned_plan =
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_c2r
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
           FFTW_ESTIMATE | FFTW_PRESERVE_INPUT | FFTW_UNALIGNED
         );
     }
@@ -256,16 +374,22 @@
   private:
     std::size_t my_size;
     const int   ref_alignment;
+    
     plan_type   my_forward_plan;
     plan_type   my_backward_plan;
     plan_type   my_forward_unaligned_plan;
     plan_type   my_backward_unaligned_plan;
+    
+    plan_type   my_r2c_plan;
+    plan_type   my_c2r_plan;
+    plan_type   my_r2c_unaligned_plan;
+    plan_type   my_c2r_unaligned_plan;
   };
 
   } // namespace detail
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
-  using fftw_dft = detail::dft<detail::fftw_backend,RingType,Allocator_t>;
+  using fftw_dft = detail::complex_dft<detail::fftw_backend,RingType,Allocator_t>;
   
   using fftw_transform = transform< fftw_dft<> >;
   

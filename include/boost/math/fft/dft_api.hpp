@@ -46,15 +46,21 @@
     public:
     using value_type1 = A_t;
     using value_type2 = B_t;
-    using allocator_type = allocator_t;
+    //using allocator_type1 = allocator_t;
+    //using allocator_type2 = allocator_t;
+    using allocator_type1 = typename std::allocator_traits<allocator_t>::template rebind_alloc<value_type1>;
+    using allocator_type2 = typename std::allocator_traits<allocator_t>::template rebind_alloc<value_type2>;
     
     private:
-    std::vector<value_type1,allocator_type> my_mem_1;
-    std::vector<value_type2,allocator_type> my_mem_2;
+    
+    using buffer_type1 = std::vector<value_type1,allocator_type1> ;
+    using buffer_type2 = std::vector<value_type2,allocator_type2> ;
+    buffer_type1 my_mem_1;
+    buffer_type2 my_mem_2;
     
     public:
-    constexpr asymmetric_executor(const allocator_type& in_alloc = allocator_type{} )
-      : my_mem_1(in_alloc) , my_mem_2(in_alloc)
+    constexpr asymmetric_executor(const allocator_t& in_alloc = allocator_t{})
+      : my_mem_1(in_alloc), my_mem_2(in_alloc) 
     { }
     
     template<typename InputIteratorType,
@@ -134,11 +140,12 @@
     using allocator_type = allocator_t;
     
     private:
-    std::vector<value_type,allocator_type> my_mem;
+    using buffer_type = std::vector<value_type,allocator_type> ;
+    buffer_type my_mem;
     
     public:
-    constexpr symmetric_executor(const allocator_type& in_alloc = allocator_type{} )
-      : my_mem(in_alloc) 
+    constexpr symmetric_executor(const allocator_type& in_alloc = allocator_type{})
+      : my_mem(in_alloc)
     { }
     
     template<typename InputIteratorType,
@@ -202,35 +209,48 @@
   };
   
   template< template<class ... Args> class BackendType, class T, class allocator_t >
-  class dft : public BackendType<T,allocator_t> , public symmetric_executor<T,allocator_t>
+  class complex_dft : 
+        public BackendType<T,allocator_t> , 
+        public symmetric_executor<T,allocator_t>,
+        public asymmetric_executor<typename T::value_type,T,allocator_t>,
+        public asymmetric_executor<T,typename T::value_type,allocator_t>
   {
     public:
-    using base_type       = BackendType<T,allocator_t>;
-    using executor_C2C    = symmetric_executor<T,allocator_t>;
+    using complex_type    = T;
+    using real_type       = typename T::value_type;
+    using allocator_type  = allocator_t;
     
-    using value_type      = typename base_type::value_type;
-    using allocator_type  = typename base_type::allocator_type;
+    using value_type      = complex_type;
+    
+    using backend         = BackendType<complex_type,allocator_type>;
+    using executor_C2C    = symmetric_executor<complex_type,allocator_type>;
+    using executor_R2C    = asymmetric_executor<real_type,complex_type,allocator_type>;
+    using executor_C2R    = asymmetric_executor<complex_type,real_type,allocator_type>;
     
     template<class U, class A>
-    using other = dft<BackendType,U,A>;
+    using other = complex_dft<BackendType,U,A>;
     
     private:
-    using RingType = value_type;
+    using RingType = complex_type;
     allocator_type alloc;
     enum class execution_type { forward, backward };
     
     
   public:
-    using base_type::size;
-    using base_type::resize;
+    using backend::size;
+    using backend::resize;
 
     // complex types ctor. n: the size of the dft
-    constexpr dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
-      : base_type(n,in_alloc), executor_C2C(in_alloc), alloc{in_alloc} { }
+    constexpr complex_dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
+      : backend(n,in_alloc), 
+        executor_C2C(in_alloc), 
+        executor_R2C(in_alloc), 
+        executor_C2R(in_alloc), 
+        alloc{in_alloc} { }
 
-    // ring types ctor. n: the size of the dft, w: an n-root of unity
-    constexpr dft(unsigned int n, RingType w, const allocator_type& in_alloc = allocator_type{} ) 
-      : base_type( n, w, in_alloc ), executor_C2C(in_alloc), alloc{in_alloc} { }
+    //// ring types ctor. n: the size of the dft, w: an n-root of unity
+    //constexpr complex_dft(unsigned int n, RingType w, const allocator_type& in_alloc = allocator_type{} ) 
+    //  : backend( n, w, in_alloc ), executor_C2C(in_alloc), alloc{in_alloc} { }
 
     template<typename InputIteratorType,
              typename OutputIteratorType>
@@ -242,7 +262,7 @@
       executor_C2C::execute(in_first,in_last,out,
         [this](const RingType* i, RingType* o)
         {
-          base_type::forward(i,o);
+          backend::forward(i,o);
         });
     }
 
@@ -256,7 +276,7 @@
       executor_C2C::execute(in_first,in_last,out,
         [this](const RingType* i, RingType* o)
         {
-          base_type::backward(i,o);
+          backend::backward(i,o);
         });
     }
   };
