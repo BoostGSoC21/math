@@ -37,18 +37,107 @@
       -> right distributivity, ie. (b+c)*a == b*a + c*a
   */
   
-  template<typename T, typename allocator_t>
-  class executor_T2T
+  /*
+    Type A to type B execution API.
+  */
+  template<typename A_t, typename B_t, typename allocator_t>
+  class asymmetric_executor
   {
     public:
-    using value_type = T;
+    using value_type1 = A_t;
+    using value_type2 = B_t;
     using allocator_type = allocator_t;
     
     private:
-    std::vector<T,allocator_type> my_mem;
+    std::vector<value_type1,allocator_type> my_mem_1;
+    std::vector<value_type2,allocator_type> my_mem_2;
     
     public:
-    constexpr executor_T2T(const allocator_type& in_alloc = allocator_type{} )
+    constexpr asymmetric_executor(const allocator_type& in_alloc = allocator_type{} )
+      : my_mem_1(in_alloc) , my_mem_2(in_alloc)
+    { }
+    
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType >
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      std::size_t /* out_size */,
+      EngineType engine, 
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == true)
+                               && (std::is_convertible<OutputIteratorType,       value_type2*>::value == true))>::type* = nullptr)
+    {
+      engine(in_first,out);
+    }
+    
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType>
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      std::size_t /* out_size */,
+      EngineType engine,
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == false)
+                               && (std::is_convertible<OutputIteratorType,       value_type2*>::value == true))>::type* = nullptr)
+    {
+      my_mem_1.resize(std::distance(in_first,in_last));
+      std::copy(in_first, in_last, std::begin(my_mem_1));
+      engine(my_mem_1.data(),out);
+    }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType>
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      std::size_t out_size,
+      EngineType engine,
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == true)
+                               && (std::is_convertible<OutputIteratorType,       value_type2*>::value == false))>::type* = nullptr)
+    {
+      my_mem_2.resize(out_size);
+      engine(in_first,my_mem_2.data());
+      std::copy(std::begin(my_mem_2), std::end(my_mem_2), out);
+    }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType,
+             typename EngineType>
+    void execute(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out,
+      std::size_t out_size,
+      EngineType engine,
+      typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == false)
+                               && (std::is_convertible<OutputIteratorType,       value_type2*>::value == false))>::type* = nullptr)
+    {
+      my_mem_1.resize(std::distance(in_first,in_last));
+      my_mem_2.resize(out_size);
+      std::copy(in_first, in_last, std::begin(my_mem_1));
+      engine(my_mem_1.data(),my_mem_2.data());
+      std::copy(std::begin(my_mem_2),std::end(my_mem_2), out);
+    }
+    
+  };
+  
+  /*
+    Type T to type T execution API.
+  */
+  template<typename A_t, typename allocator_t>
+  class symmetric_executor
+  {
+    public:
+    using value_type = A_t;
+    using allocator_type = allocator_t;
+    
+    private:
+    std::vector<value_type,allocator_type> my_mem;
+    
+    public:
+    constexpr symmetric_executor(const allocator_type& in_alloc = allocator_type{} )
       : my_mem(in_alloc) 
     { }
     
@@ -113,11 +202,11 @@
   };
   
   template< template<class ... Args> class BackendType, class T, class allocator_t >
-  class dft : public BackendType<T,allocator_t> , public executor_T2T<T,allocator_t>
+  class dft : public BackendType<T,allocator_t> , public symmetric_executor<T,allocator_t>
   {
     public:
     using base_type       = BackendType<T,allocator_t>;
-    using executor_type   = executor_T2T<T,allocator_t>;
+    using executor_C2C    = symmetric_executor<T,allocator_t>;
     
     using value_type      = typename base_type::value_type;
     using allocator_type  = typename base_type::allocator_type;
@@ -137,11 +226,11 @@
 
     // complex types ctor. n: the size of the dft
     constexpr dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
-      : base_type(n,in_alloc), executor_type(in_alloc), alloc{in_alloc} { }
+      : base_type(n,in_alloc), executor_C2C(in_alloc), alloc{in_alloc} { }
 
     // ring types ctor. n: the size of the dft, w: an n-root of unity
     constexpr dft(unsigned int n, RingType w, const allocator_type& in_alloc = allocator_type{} ) 
-      : base_type( n, w, in_alloc ), executor_type(in_alloc), alloc{in_alloc} { }
+      : base_type( n, w, in_alloc ), executor_C2C(in_alloc), alloc{in_alloc} { }
 
     template<typename InputIteratorType,
              typename OutputIteratorType>
@@ -150,7 +239,7 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_type::execute(in_first,in_last,out,
+      executor_C2C::execute(in_first,in_last,out,
         [this](const RingType* i, RingType* o)
         {
           base_type::forward(i,o);
@@ -164,7 +253,7 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_type::execute(in_first,in_last,out,
+      executor_C2C::execute(in_first,in_last,out,
         [this](const RingType* i, RingType* o)
         {
           base_type::backward(i,o);
