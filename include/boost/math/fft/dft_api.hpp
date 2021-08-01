@@ -209,6 +209,67 @@
   };
   
   template< template<class ... Args> class BackendType, class T, class allocator_t >
+  class algebraic_dft : 
+        public BackendType<T,allocator_t> , 
+        public symmetric_executor<T,allocator_t>
+  {
+    public:
+    using value_type      = T;
+    using allocator_type  = allocator_t;
+    
+    using backend         = BackendType<value_type,allocator_type>;
+    using executor        = symmetric_executor<value_type,allocator_type>;
+    
+    template<class U, class A>
+    using other = algebraic_dft<BackendType,U,A>;
+    
+    private:
+    allocator_type alloc;
+    value_type root,inverse_root;
+    
+  public:
+    using backend::size;
+    using backend::resize;
+    
+    // complex types ctor. n: the size of the dft
+    constexpr algebraic_dft(unsigned int n, value_type w, const allocator_type& in_alloc = allocator_type{} )
+      : backend(n,in_alloc), 
+        executor(in_alloc), 
+        alloc{in_alloc} ,
+        root{w},
+        inverse_root{ backend::inverse_root(w) }
+    { }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void forward(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out)
+    {
+      resize(std::distance(in_first,in_last));
+      executor::execute(in_first,in_last,out,
+        [this](const value_type* i, value_type* o)
+        {
+          backend::dft(i,o,root);
+        });
+    }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void backward(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out)
+    {
+      resize(std::distance(in_first,in_last));
+      executor::execute(in_first,in_last,out,
+        [this](const value_type* i, value_type* o)
+        {
+          backend::dft(i,o,inverse_root);
+        });
+    }
+  };
+  
+  template< template<class ... Args> class BackendType, class T, class allocator_t >
   class complex_dft : 
         public BackendType<T,allocator_t> , 
         public symmetric_executor<T,allocator_t>,
@@ -231,10 +292,7 @@
     using other = complex_dft<BackendType,U,A>;
     
     private:
-    using RingType = complex_type;
     allocator_type alloc;
-    enum class execution_type { forward, backward };
-    
     
   public:
     using backend::size;
@@ -248,10 +306,6 @@
         executor_C2R(in_alloc), 
         alloc{in_alloc} { }
 
-    //// ring types ctor. n: the size of the dft, w: an n-root of unity
-    //constexpr complex_dft(unsigned int n, RingType w, const allocator_type& in_alloc = allocator_type{} ) 
-    //  : backend( n, w, in_alloc ), executor_C2C(in_alloc), alloc{in_alloc} { }
-
     template<typename InputIteratorType,
              typename OutputIteratorType>
     void forward(
@@ -260,7 +314,7 @@
     {
       resize(std::distance(in_first,in_last));
       executor_C2C::execute(in_first,in_last,out,
-        [this](const RingType* i, RingType* o)
+        [this](const complex_type* i, complex_type* o)
         {
           backend::forward(i,o);
         });
@@ -274,7 +328,7 @@
     {
       resize(std::distance(in_first,in_last));
       executor_C2C::execute(in_first,in_last,out,
-        [this](const RingType* i, RingType* o)
+        [this](const complex_type* i, complex_type* o)
         {
           backend::backward(i,o);
         });

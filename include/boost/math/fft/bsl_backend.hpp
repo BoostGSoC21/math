@@ -56,82 +56,42 @@
     execute(plan_type plan, const RingType * in, RingType* out)const
     {
       const long N = static_cast<long>(size());
-      // select the implementation according to the type
-      if((has_root() == false) && detail::is_complex<RingType>::value)
-      {
-          const int sign = (plan == forward_plan ? 1 : -1);
-          // select the implementation according to the DFT size
-          
-          switch(N)
-          {
-            case 0:
-              return;
-            case 1:
-              out[0]=in[0];
-              return;
-            case 2:
-              detail::complex_dft_2(in,out,sign);
-              return;
-          }
-          
-          if( detail::is_power2(N) )
-          {
-            detail::complex_dft_power2(in,in+N,out,sign);
-          }
-          else if(detail::is_prime(N))
-          {
-            // detail::complex_dft_prime_bruteForce(in,in+N,out,sign);
-            detail::complex_dft_prime_rader(in,in+N,out,sign,alloc);
-          }
-          else
-          {
-            detail::complex_dft_composite(in,in+N,out,sign,alloc);
-          }
-      }else
-      {
-        const RingType w_execute = (plan==forward_plan ? root() : inverse_root());
-        
-        // select the implementation according to the DFT size
-        if( detail::is_power2(N))
-        {
-          detail::dft_power2(in,in+N,out,w_execute);
-        }
-        else
-        {
-          detail::dft_composite(in,in+N,out,w_execute,alloc);
-        }
-      }
-      
-    }
-    
-    template<typename U = RingType>
-    typename std::enable_if< detail::is_complex<U>::value==false  >::type
-    execute(plan_type plan, const RingType * in, RingType* out)const
-    {
-      const RingType w_execute = (plan==forward_plan ? root() : inverse_root());
+      const int sign = (plan == forward_plan ? 1 : -1);
       
       // select the implementation according to the DFT size
-      if( detail::is_power2(static_cast<long>(size())))
+      switch(N)
       {
-        detail::dft_power2(in,in+size(),out,w_execute);
+        case 0:
+          return;
+        case 1:
+          out[0]=in[0];
+          return;
+        case 2:
+          detail::complex_dft_2(in,out,sign);
+          return;
+      }
+      
+      if( detail::is_power2(N) )
+      {
+        detail::complex_dft_power2(in,in+N,out,sign);
+      }
+      else if(detail::is_prime(N))
+      {
+        // detail::complex_dft_prime_bruteForce(in,in+N,out,sign);
+        detail::complex_dft_prime_rader(in,in+N,out,sign,alloc);
       }
       else
       {
-        detail::dft_composite(in,in+size(),out,w_execute,alloc);
+        detail::complex_dft_composite(in,in+N,out,sign,alloc);
       }
     }
     
   public:
-    constexpr bsl_backend(std::size_t n=0, const allocator_type& in_alloc = allocator_type{}):
-        alloc{in_alloc}, my_size{n}
-    {
-    }
     
     // the provided root of unity is used instead of exp(-i 2 pi/n)
-    constexpr bsl_backend(std::size_t n, RingType /* root of unity = */ w, const allocator_type& in_alloc = allocator_type{}):
+    constexpr bsl_backend(std::size_t n, const allocator_type& in_alloc = allocator_type{}):
         alloc{in_alloc},
-        my_size{n}, _has_root{true}, my_root{w},
-        my_inverse_root{ my_size <=1 ? my_root : detail::power(my_root,my_size-1)}
+        my_size{n}
     { 
     }
 
@@ -139,56 +99,13 @@
     {
     }
     
-    bool has_root()const
-    {
-      return _has_root;
-    }
-    
     void resize(std::size_t new_size)
     {
       my_size = new_size;
-      _has_root = false;
     }
-    void resize(std::size_t new_size, RingType w)
+    RingType inverse_root(RingType root) const
     {
-      my_size = new_size;
-      _has_root = true;
-      my_root = w;
-      if(new_size<=1)
-        my_inverse_root = my_root;
-      else  
-        my_inverse_root = detail::power(my_root,new_size-1);
-    }
-    
-    // non complex types
-    template<typename U = RingType>
-    RingType root(typename std::enable_if< detail::is_complex<U>::value == false >::type* = nullptr) const
-    {
-      if(has_root() == false)
-        std::runtime_error("no root has been defined for this DFT size");
-      return my_root;
-    }
-    template<typename U = RingType>
-    RingType inverse_root(typename std::enable_if< detail::is_complex<U>::value == false >::type* = nullptr) const
-    {
-      if(has_root() == false)
-        std::runtime_error("no root has been defined for this DFT size");
-      return my_inverse_root;
-    }
-    // complex types
-    template<typename U = RingType>
-    RingType root(typename std::enable_if< detail::is_complex<U>::value == true >::type* = nullptr) const
-    {
-      if(has_root())
-        return my_root;
-      return detail::complex_root_of_unity<RingType>(static_cast<long>(size()));
-    }
-    template<typename U = RingType>
-    RingType inverse_root(typename std::enable_if< detail::is_complex<U>::value == true >::type* = nullptr) const
-    {
-      if(has_root())
-        return my_root;
-      return detail::complex_inverse_root_of_unity<RingType>(static_cast<long>(size()));
+      return detail::power(root,size()-1);
     }
     
     constexpr std::size_t size() const { return my_size; }
@@ -202,12 +119,23 @@
     {
       execute(backward_plan,in,out);   
     }
+    void dft(const RingType* in, RingType* out, RingType w) const
+    {
+      const long N = static_cast<long>(size());
+      // select the implementation according to the DFT size
+      if( detail::is_power2(N))
+      {
+        detail::dft_power2(in,in+N,out,w);
+      }
+      else
+      {
+        detail::dft_composite(in,in+N,out,w,alloc);
+      }
+    }
 
   private:
     allocator_type alloc;
     std::size_t my_size{};
-    bool _has_root=false;
-    RingType my_root, my_inverse_root;
   };
   
   } // namespace detail
@@ -215,7 +143,12 @@
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using bsl_dft = detail::complex_dft<detail::bsl_backend,RingType,Allocator_t>;
   
+  template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
+  using bsl_algebraic_dft = detail::algebraic_dft<detail::bsl_backend,RingType,Allocator_t>;
+  
   using bsl_transform = transform< bsl_dft<> >;
+  
+  using bsl_algebraic_transform = transform< bsl_algebraic_dft<> >;
   
   } } } // namespace boost::math::fft
 
