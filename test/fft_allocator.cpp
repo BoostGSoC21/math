@@ -36,6 +36,12 @@ struct my_allocator
     my_allocator()
     {
     }
+    
+    template<class U>
+    my_allocator(const my_allocator<U>&)
+    {
+    }
+    
     ~my_allocator()
     {
     }
