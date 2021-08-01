@@ -247,6 +247,30 @@
           reinterpret_cast<local_complex_type*>(out)
         );
     }
+    void execute(plan_type plan, plan_type unaligned_plan, const real_value_type* in, complex_value_type* out) const
+    {
+      using local_complex_type = typename detail::fftw_traits_c_interface<real_value_type>::complex_value_type;
+      
+      std::memcpy(reinterpret_cast<void*>(out),reinterpret_cast<const void*>(in),sizeof(local_complex_type)*(1+size()/2));
+      
+      const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
+                reinterpret_cast<fftw_real_value_type*>(out));
+                
+      if(out_alignment==ref_alignment)
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute_r2c
+        (
+          plan,
+          reinterpret_cast<fftw_real_value_type*>(out),
+          reinterpret_cast<local_complex_type*>(out)
+        );
+      else
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute_r2c
+        (
+          unaligned_plan,
+          reinterpret_cast<fftw_real_value_type*>(out),
+          reinterpret_cast<local_complex_type*>(out)
+        );
+    }
     
     void free()
     {
@@ -369,6 +393,10 @@
     void backward(const complex_value_type* in, complex_value_type* out) const
     {
       execute(my_backward_plan, my_backward_unaligned_plan, in, out);  
+    }
+    void r2c(const real_value_type* in, complex_value_type* out) const
+    {
+      execute(my_r2c_plan, my_r2c_unaligned_plan, in, out);  
     }
 
   private:
