@@ -29,14 +29,20 @@ void test_r2c()
     
   Backend plan(A.size());
   plan.r2c(A.begin(),A.end(),std::back_inserter(B));
-
+  print(B);
+  
+  A.push_back(4);
+  plan.resize(A.size());
+  B.resize(plan.halfcomplex_size());
+  
+  plan.r2c(A.begin(),A.end(),B.begin());
   print(B);
 }
 
 int main()
 {
   test_r2c< fftw_dft<std::complex<double> > >();
-  //test_r2c< gsl_dft<std::complex<double> > >();
+  test_r2c< gsl_dft<std::complex<double> > >();
   //test_r2c< bsl_dft<std::complex<double> > >();
   return boost::math::test::report_errors();
 }

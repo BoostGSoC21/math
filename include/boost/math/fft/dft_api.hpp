@@ -341,13 +341,13 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_R2C::execute(in_first,in_last,out,half_complex_size(),
+      executor_R2C::execute(in_first,in_last,out,halfcomplex_size(),
         [this](const real_type* i, complex_type* o)
         {
           backend::r2c(i,o);
         });
     }
-    std::size_t half_complex_size()const
+    std::size_t halfcomplex_size()const
     {
       return size()/2 + 1;
     }
