@@ -84,16 +84,13 @@ namespace fft { namespace detail {
       void halfcomplex_to_complex(real_value_type* data)const
       {
         std::size_t N = size();
-        if(N%2)
+        for(std::size_t i=N;i>0;--i)
+          data[i] = data[i-1];
+        data[1] = 0;
+        
+        if(N%2==0)
         {
-          for(std::size_t i=N;i>0;--i)
-            data[i] = data[i-1];
-            
-          data[1] = 0;
-        }else
-        {
-          data[N] = data[1];
-          data[N+1] = data[1] = 0;
+          data[N+1] = 0;
         }
       }
       void free()
