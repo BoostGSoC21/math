@@ -21,6 +21,9 @@ namespace fft { namespace detail {
     template<class T, class A>
     class gsl_backend;
     
+    template<class T, class A>
+    class gsl_rfft_backend;
+    
     template<class Allocator_t>
     class gsl_backend< std::complex<double>, Allocator_t >
     {
@@ -34,6 +37,7 @@ namespace fft { namespace detail {
       enum plan_type { forward_plan, backward_plan };
       
       std::size_t my_size; 
+      allocator_type my_alloc;
       
       // complex fft
       gsl_fft_complex_wavetable *wtable;
@@ -148,10 +152,162 @@ namespace fft { namespace detail {
         execute(in, out);  
       }
     };
+    
+    template<class Allocator_t>
+    class gsl_rfft_backend< double, Allocator_t >
+    {
+    public:
+      // using value_type     = double;
+      using allocator_type = Allocator_t;
+      
+    private:
+      enum plan_type { forward_plan, backward_plan };
+      using real_value_type    = double;
+      
+      template<class U>
+      using vector_t = std::vector<U, typename std::allocator_traits<allocator_type>::template rebind_alloc<U> >;
+      
+      std::size_t my_size; 
+      allocator_type my_alloc;
+      
+      gsl_fft_real_wavetable        *real_wtable;
+      gsl_fft_halfcomplex_wavetable *halfcomplex_wtable;
+      gsl_fft_real_workspace        *real_wspace;
+      
+      template<plan_type p>
+      void execute(const real_value_type* in, 
+                   real_value_type* out,
+                   const typename std::enable_if<p==forward_plan>::type* = nullptr) const
+      {
+        const std::size_t N = size();
+        if(in!=out)
+        {
+          // we avoid this extra step for in-place transforms
+          // notice that if in==out, the following code has
+          // undefined-behavior
+          std::copy(in,in+N,out);
+        }
+        gsl_fft_real_transform(
+          out,1, N, real_wtable, real_wspace);
+      }
+      template<plan_type p>
+      void execute(const real_value_type* in, 
+                   real_value_type* out,
+                   const typename std::enable_if<p==backward_plan>::type* = nullptr) const
+      {
+        const std::size_t N = size();
+        if(in!=out)
+        {
+          // we avoid this extra step for in-place transforms
+          // notice that if in==out, the following code has
+          // undefined-behavior
+          std::copy(in,in+N,out);
+        }
+        gsl_fft_halfcomplex_transform(
+          out,1, N, halfcomplex_wtable, real_wspace);
+      }
+      
+      void free()
+      {
+        gsl_fft_real_wavetable_free(real_wtable);
+        gsl_fft_halfcomplex_wavetable_free(halfcomplex_wtable);
+        gsl_fft_real_workspace_free(real_wspace);
+      }
+      void alloc()
+      {
+        const std::size_t N = size();
+        real_wtable        = gsl_fft_real_wavetable_alloc(N);
+        halfcomplex_wtable = gsl_fft_halfcomplex_wavetable_alloc(N);
+        real_wspace        = gsl_fft_real_workspace_alloc(N);
+      }
+   public:
+      
+      gsl_rfft_backend(std::size_t n, const allocator_type& A= allocator_type{}):
+          my_size{n},
+          my_alloc{A}
+      {
+        alloc();
+      }
+        
+      ~gsl_rfft_backend()
+      {
+        free();
+      }
+      constexpr std::size_t size() const {return my_size;}
+      constexpr std::size_t unique_complex_size() const {return my_size/2 + 1;}
+      
+      void resize(std::size_t new_size)
+      {
+        if(size()!=new_size)
+        {
+          free();
+          my_size = new_size;
+          alloc();
+        }
+      }
+        
+      void real_to_halfcomplex(const real_value_type* in, real_value_type* out) const
+      {
+        execute<forward_plan>(in,out);
+      }
+      void halfcomplex_to_real(const real_value_type* in, real_value_type* out) const
+      {
+        execute<backward_plan>(in,out);
+      }
+      template<class Complex>
+      void real_to_complex(const real_value_type* in, Complex *out)const
+      {
+        const std::size_t N = size();
+        const std::size_t M = unique_complex_size();
+        
+        vector_t<real_value_type> tmp(N,my_alloc);
+        real_to_halfcomplex(in,tmp.data());
+        
+        out[0].real(tmp.front());
+        out[0].imag(0);
+        
+        for(unsigned int i=1,j=1;i<M && j+1<N;++i,j+=2)
+        {
+          out[i].real(tmp[j]);
+          out[i].imag(tmp[j+1]);
+        }
+        
+        if(N%2==0)
+        {
+          out[M-1].real(tmp.back());
+          out[M-1].imag(0);
+        }
+      }
+      template<class Complex>
+      void complex_to_real(const Complex* in, real_value_type* out) const
+      {
+        const std::size_t N = size();
+        const std::size_t M = unique_complex_size();
+        
+        vector_t<real_value_type> tmp(N,my_alloc);
+        
+        tmp.front() = in[0].real();
+        
+        for(unsigned int i=1,j=1;i<M && j+1<N;++i,j+=2)
+        {
+          tmp[j]   = in[i].real();
+          tmp[j+1] = in[i].imag();
+        }
+        
+        if(N%2==0)
+        {
+          tmp.back() = in[M-1].real();
+        }
+        halfcomplex_to_real(tmp.data(),out);
+      }
+    };
 } // namespace detail    
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using gsl_dft = detail::complex_dft<detail::gsl_backend,RingType,Allocator_t>;
+  
+  template<class T = double, class Allocator_t = std::allocator<T> >
+  using gsl_rfft = detail::real_dft<detail::gsl_rfft_backend,T,Allocator_t>;
   
   using gsl_transform = transform< gsl_dft<> >;
   

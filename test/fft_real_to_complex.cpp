@@ -21,28 +21,28 @@ void print(const std::vector<T>& V)
 template<class Backend>
 void test_r2c()
 {
-  using Complex = typename Backend::value_type;
-  using Real    = typename Complex::value_type;
+  using Real    = typename Backend::value_type;
+  using Complex = std::complex<Real>;
   
   std::vector<Real> A{1.,2.,3.};
   std::vector<Complex> B;
     
   Backend plan(A.size());
-  plan.r2c(A.begin(),A.end(),std::back_inserter(B));
+  plan.real_to_complex(A.begin(),std::back_inserter(B));
   print(B);
   
   A.push_back(4);
   plan.resize(A.size());
-  B.resize(plan.halfcomplex_size());
+  B.resize(plan.unique_complex_size());
   
-  plan.r2c(A.begin(),A.end(),B.begin());
+  plan.real_to_complex(A.begin(),B.begin());
   print(B);
 }
 
 int main()
 {
-  test_r2c< fftw_dft<std::complex<double> > >();
-  test_r2c< gsl_dft<std::complex<double> > >();
+  test_r2c< fftw_rfft<double > >();
+  test_r2c< gsl_rfft<double > >();
   //test_r2c< bsl_dft<std::complex<double> > >();
   return boost::math::test::report_errors();
 }

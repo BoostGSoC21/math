@@ -413,11 +413,236 @@
     plan_type   my_r2c_unaligned_plan;
     plan_type   my_c2r_unaligned_plan;
   };
+  
+  template<class T, class Allocator_t >
+  class fftw_rfft_backend
+  {
+  public:
+    // using value_type     = T;
+    using allocator_type = Allocator_t;
+  
+  private:
+    using real_value_type    = T;
+    using plan_type          = typename detail::fftw_traits_c_interface<real_value_type>::plan_type;
+    using fftw_real_value_type     = typename detail::fftw_traits_c_interface<real_value_type>::real_value_type;
+    using fftw_complex_value_type  = typename detail::fftw_traits_c_interface<real_value_type>::complex_value_type;
+      
+    template<class U>
+    using vector_t = std::vector<U, typename std::allocator_traits<allocator_type>::template rebind_alloc<U> >;
+   
+    void execute_r2c(plan_type plan, plan_type unaligned_plan, const real_value_type* in, real_value_type* out) const
+    // precondition:
+    // size(in)  >= size()
+    // size(out) >= unique_complex_size()*2
+    {
+      const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
+                reinterpret_cast<fftw_real_value_type*>(out));
+                
+      if(in!=out) // We have to copy, because fftw plan is forced to be in-place: from: nullptr, to: nullptr
+        std::copy(in,in+size(),out);
+                
+      if(out_alignment==ref_alignment)
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute_r2c
+        (
+          plan,
+          reinterpret_cast<fftw_real_value_type*>(out),
+          reinterpret_cast<fftw_complex_value_type*>(out)
+        );
+      else
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute_r2c
+        (
+          unaligned_plan,
+          reinterpret_cast<fftw_real_value_type*>(out),
+          reinterpret_cast<fftw_complex_value_type*>(out)
+        );
+    }
+    void execute_c2r(plan_type plan, plan_type unaligned_plan, const real_value_type* in, real_value_type* out) const
+    // precondition:
+    // size(in)  >= unique_complex_size()*2
+    // size(out) >= unique_complex_size()*2
+    {
+      const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
+                reinterpret_cast<fftw_real_value_type*>(out));
+                
+      if(in!=out) // We have to copy, because fftw plan is forced to be in-place: from: nullptr, to: nullptr
+        std::copy(in,in+unique_complex_size()*2,out);
+                
+      if(out_alignment==ref_alignment)
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute_c2r
+        (
+          plan,
+          reinterpret_cast<fftw_complex_value_type*>(out),
+          reinterpret_cast<fftw_real_value_type*>(out)
+        );
+      else
+        detail::fftw_traits_c_interface<real_value_type>::plan_execute_c2r
+        (
+          unaligned_plan,
+          reinterpret_cast<fftw_complex_value_type*>(out),
+          reinterpret_cast<fftw_real_value_type*>(out)
+        );
+    }
+    
+    void free()
+    {
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2c_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_c2r_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2c_unaligned_plan);
+      detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_c2r_unaligned_plan);
+    }
+    void alloc()
+    {
+      my_r2c_plan = 
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_r2c
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE
+        );
+      my_c2r_plan =
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_c2r
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE
+        );
+      my_r2c_unaligned_plan = 
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_r2c
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE | FFTW_UNALIGNED
+        );
+      my_c2r_unaligned_plan =
+        detail::fftw_traits_c_interface<real_value_type>::plan_construct_c2r
+        (
+          size(), 
+          nullptr, 
+          nullptr, 
+          FFTW_ESTIMATE | FFTW_UNALIGNED
+        );
+    }
+
+  public:
+    fftw_rfft_backend(std::size_t n, const allocator_type& A = allocator_type{} )
+      : my_size{ n },
+        ref_alignment{
+            detail::fftw_traits_c_interface<real_value_type>::alignment_of(nullptr)},
+        my_allocator{A}
+    {
+      // For C++11, this line needs to be constexpr-ified.
+      // Then we could restore the constexpr-ness of this constructor.
+      alloc();
+    }
+
+    ~fftw_rfft_backend()
+    {
+      free();
+    }
+    
+    void resize(std::size_t new_size)
+    {
+      if(size()!=new_size)
+      {
+        free();
+        my_size = new_size;
+        alloc();
+      }
+    }
+
+    constexpr std::size_t size() const { return my_size; }
+    constexpr std::size_t unique_complex_size() const {return my_size/2 + 1;}
+     
+    void pack_halfcomplex(const real_value_type* in, real_value_type* out) const
+    {
+      const std::size_t N = size();
+      out[0]=in[0];
+      for(unsigned int i=1;i<N;++i)
+      {
+        out[i] = in[i+1];
+      }
+    }
+    void unpack_halfcomplex(const real_value_type* in, real_value_type* out) const
+    {
+      const std::size_t N = size();
+      const std::size_t M = unique_complex_size();
+      out[1]=0;
+      out[2*M-1]=0;
+      
+      out[0]=in[0];
+      for(unsigned int i=1;i<N;++i)
+      {
+        out[i+1] = in[i];
+      }
+    }
+    void real_to_halfcomplex(const real_value_type* in, real_value_type* out) const
+    {
+      const std::size_t N = size();
+      const std::size_t M = unique_complex_size();
+      vector_t<real_value_type> tmp(2*M,my_allocator);
+      std::copy(in,in+N,tmp.begin());
+      execute_r2c(my_r2c_plan,my_r2c_unaligned_plan,tmp.data(),tmp.data());
+      pack_halfcomplex(tmp.data(),out);
+    }
+    void halfcomplex_to_real(const real_value_type* in, real_value_type* out) const
+    {
+      const std::size_t N = size();
+      const std::size_t M = unique_complex_size();
+      vector_t<real_value_type> tmp(2*M,my_allocator);
+      unpack_halfcomplex(in,tmp.data()); 
+      execute_c2r(my_c2r_plan,my_c2r_unaligned_plan,tmp.data(),tmp.data());
+      std::copy(tmp.begin(),tmp.begin()+N,out);
+    }
+    template<class Complex>
+    void real_to_complex(const real_value_type* in, Complex *out)const
+    {
+      const std::size_t N = size();
+      const std::size_t M = unique_complex_size();
+      vector_t<real_value_type> tmp(2*M,my_allocator);
+      std::copy(in,in+N,tmp.begin());
+      execute_r2c(my_r2c_plan,my_r2c_unaligned_plan,tmp.data(),tmp.data());
+      for(unsigned int i=0,j=0;i<M;++i,j+=2)
+      {
+        out[i].real(tmp[j]);
+        out[i].imag(tmp[j+1]);
+      }
+    }
+    template<class Complex>
+    void complex_to_real(const Complex* in, real_value_type* out) const
+    {
+      const std::size_t N = size();
+      const std::size_t M = unique_complex_size();
+      vector_t<real_value_type> tmp(2*M,my_allocator);
+      for(unsigned int i=0,j=0;i<M;++i,j+=2)
+      {
+        tmp[j]=out[i].real();
+        tmp[j]=out[i].imag();
+      }
+      execute_c2r(my_c2r_plan,my_c2r_unaligned_plan,tmp.data(),tmp.data());
+      std::copy(tmp.begin(),tmp.begin()+N,out);
+    }
+
+  private:
+    std::size_t my_size;
+    const int   ref_alignment;
+    allocator_type my_allocator;
+    
+    plan_type   my_r2c_plan;
+    plan_type   my_c2r_plan;
+    plan_type   my_r2c_unaligned_plan;
+    plan_type   my_c2r_unaligned_plan;
+  };
 
   } // namespace detail
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using fftw_dft = detail::complex_dft<detail::fftw_backend,RingType,Allocator_t>;
+  
+  template<class T = double, class Allocator_t = std::allocator<T> >
+  using fftw_rfft = detail::real_dft<detail::fftw_rfft_backend,T,Allocator_t>;
   
   using fftw_transform = transform< fftw_dft<> >;
   

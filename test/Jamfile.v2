@@ -1477,5 +1477,6 @@ test-suite fft :
    [ run ../example/fft_ex03.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ../config//gsl ]
    [ run ../example/fft_ex04.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ../config//gsl ]
    [ run ../example/fft_ex05.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//quadmath ../config//gsl ]
+   [ run ../example/fft_ex06.cpp ../config//fftw3 ]
    #[ compile-fail fft_compile-fail.cpp  ]
 ;

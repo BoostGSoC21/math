@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <complex>
 
   namespace boost { namespace math { namespace fft { 
   namespace detail {
@@ -67,7 +68,7 @@
              typename OutputIteratorType,
              typename EngineType >
     void execute(
-      InputIteratorType in_first, InputIteratorType in_last,
+      InputIteratorType in_first, InputIteratorType /* in_last */,
       OutputIteratorType out,
       std::size_t /* out_size */,
       EngineType engine, 
@@ -337,20 +338,120 @@
     template<typename InputIteratorType,
              typename OutputIteratorType>
     void r2c(
-      InputIteratorType in_first, InputIteratorType in_last,
+      InputIteratorType in,
       OutputIteratorType out)
     {
-      resize(std::distance(in_first,in_last));
-      executor_R2C::execute(in_first,in_last,out,halfcomplex_size(),
+      executor_R2C::execute(in,size(),out,halfcomplex_size(),
         [this](const real_type* i, complex_type* o)
         {
           backend::r2c(i,o);
+        });
+    }
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void c2r(
+      InputIteratorType in,
+      OutputIteratorType out)
+    {
+      executor_C2R::execute(in,halfcomplex_size(),out,size(),
+        [this](const complex_type* i, real_type* o)
+        {
+          backend::c2r(i,o);
         });
     }
     std::size_t halfcomplex_size()const
     {
       return size()/2 + 1;
     }
+  };
+  
+  template< template<class ... Args> class BackendType, class T, class allocator_t >
+  class real_dft : 
+        public BackendType<T,allocator_t> , 
+        public symmetric_executor<T,allocator_t>,
+        public asymmetric_executor<T,std::complex<T>,allocator_t>,
+        public asymmetric_executor<std::complex<T>,T,allocator_t>
+  {
+    public:
+    using value_type      = T;
+    using real_type       = T;
+    using complex_type    = std::complex<T>;
+    using allocator_type  = allocator_t;
+    
+    using backend         = BackendType<real_type,allocator_type>;
+    using executor_halfcomplex = symmetric_executor<real_type,allocator_type>;
+    using executor_r2c = asymmetric_executor<real_type,complex_type,allocator_type>;
+    using executor_c2r = asymmetric_executor<complex_type,real_type,allocator_type>;
+    
+    template<class U, class A>
+    using other = real_dft<BackendType,U,A>;
+    
+    private:
+    allocator_type alloc;
+    
+  public:
+    using backend::size;
+    using backend::unique_complex_size;
+    using backend::resize;
+
+    // complex types ctor. n: the size of the dft
+    constexpr real_dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
+      : backend(n,in_alloc), 
+        executor_halfcomplex(in_alloc), 
+        alloc{in_alloc} { }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void real_to_halfcomplex(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out)
+    {
+      resize(std::distance(in_first,in_last));
+      executor_halfcomplex::execute(in_first,in_last,out,
+        [this](const real_type* i, real_type* o)
+        {
+          backend::real_to_halfcomplex(i,o);
+        });
+    }
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void real_to_complex(
+      InputIteratorType in,
+      OutputIteratorType out)
+    {
+      executor_r2c::execute(in,in+size(),out,unique_complex_size(),
+        [this](const real_type* i, complex_type* o)
+        {
+          backend::template real_to_complex<complex_type>(i,o);
+        });
+    }
+
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void halfcomplex_to_real(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out)
+    {
+      resize(std::distance(in_first,in_last));
+      executor_halfcomplex::execute(in_first,in_last,out,
+        [this](const real_type* i, real_type* o)
+        {
+          backend::halfcomplex_to_real(i,o);
+        });
+    }
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void complex_to_real(
+      InputIteratorType in,
+      OutputIteratorType out)
+    {
+      executor_c2r::execute(in,in+unique_complex_size(),out,size(),
+        [this](const complex_type* i, real_type* o)
+        {
+          backend::template complex_to_real<complex_type>(i,o);
+        });
+    }
+    
   };
   
   } // namespace detail
