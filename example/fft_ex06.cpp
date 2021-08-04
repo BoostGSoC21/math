@@ -17,8 +17,21 @@
 #include <complex>
 
 template<class T>
-std::vector<T> multiply(const std::vector<T>& A, const std::vector<T>& B)
+void print(const std::vector<T>& V)
 {
+  std::cout << "size(V) = " << V.size() << "\n";
+  std::cout << "[";
+  for(auto x: V)
+  {
+    std::cout << x << ", ";
+  }
+  std::cout << "]\n";
+}
+
+template<class T>
+void multiply_halfcomplex(const std::vector<T>& A, const std::vector<T>& B)
+{
+  std::cout << "Polynomial multiplication using halfcomplex:\n";
   const std::size_t N = A.size();
   std::vector<T> TA(N),TB(N);
   boost::math::fft::fftw_rfft<T> P(N); 
@@ -41,19 +54,31 @@ std::vector<T> multiply(const std::vector<T>& A, const std::vector<T>& B)
   P.halfcomplex_to_real(C.begin(),C.end(),C.begin());
   std::transform(C.begin(), C.end(), C.begin(),
                  [N](T x) { return x / N; });
-  return C;
+  
+  print(C);
 }
-
 template<class T>
-void print(const std::vector<T>& V)
+void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
 {
-  std::cout << "size(V) = " << V.size() << "\n";
-  std::cout << "[";
-  for(auto x: V)
+  std::cout << "Polynomial multiplication using complex:\n";
+  const std::size_t N = A.size();
+  std::vector< std::complex<T> > TA(N),TB(N);
+  boost::math::fft::fftw_rfft<T> P(N); 
+  P.real_to_complex(A.begin(),TA.begin());
+  P.real_to_complex(B.begin(),TB.begin());
+  
+  std::vector<T> C(N);
+  
+  for(unsigned int i=0;i<N;++i)
   {
-    std::cout << x << ", ";
+    TA[i]*=TB[i];
   }
-  std::cout << "]\n";
+  
+  P.complex_to_real(TA.begin(),C.begin());
+  std::transform(C.begin(), C.end(), C.begin(),
+                 [N](T x) { return x / N; });
+  
+  print(C);
 }
 
 int main()
@@ -61,8 +86,9 @@ int main()
   std::vector<double> A{1.,4.,-5.,1.,0.,0.,0.,0.};
   std::vector<double> B{-1.,1.,2.,3.,0.,0.,0.,0.};
   
-  auto C = multiply(A,B);
-  print(C);
+  multiply_halfcomplex(A,B);
+  multiply_complex(A,B);
+  
   return 0;
 }
 

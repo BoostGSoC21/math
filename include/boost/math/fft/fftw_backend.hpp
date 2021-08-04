@@ -618,8 +618,8 @@
       vector_t<real_value_type> tmp(2*M,my_allocator);
       for(unsigned int i=0,j=0;i<M;++i,j+=2)
       {
-        tmp[j]=out[i].real();
-        tmp[j]=out[i].imag();
+        tmp[j]=in[i].real();
+        tmp[j+1]=in[i].imag();
       }
       execute_c2r(my_c2r_plan,my_c2r_unaligned_plan,tmp.data(),tmp.data());
       std::copy(tmp.begin(),tmp.begin()+N,out);
