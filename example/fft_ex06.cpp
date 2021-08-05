@@ -15,6 +15,11 @@
 #include <iostream>
 #include <vector>
 #include <complex>
+#include <boost/core/demangle.hpp>
+#include <boost/multiprecision/cpp_bin_float.hpp>
+#ifdef BOOST_MATH_USE_FLOAT128
+#include <boost/multiprecision/float128.hpp>
+#endif
 
 template<class T>
 void print(const std::vector<T>& V)
@@ -31,7 +36,7 @@ void print(const std::vector<T>& V)
 template<class T>
 void multiply_halfcomplex(const std::vector<T>& A, const std::vector<T>& B)
 {
-  std::cout << "Polynomial multiplication using halfcomplex:\n";
+  std::cout << "Polynomial multiplication using halfcomplex with: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
   std::vector<T> TA(N),TB(N);
   boost::math::fft::fftw_rfft<T> P(N); 
@@ -60,7 +65,7 @@ void multiply_halfcomplex(const std::vector<T>& A, const std::vector<T>& B)
 template<class T>
 void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
 {
-  std::cout << "Polynomial multiplication using complex:\n";
+  std::cout << "Polynomial multiplication using complex: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
   std::vector< std::complex<T> > TA(N),TB(N);
   boost::math::fft::fftw_rfft<T> P(N); 
@@ -81,14 +86,26 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
   print(C);
 }
 
-int main()
-{
-  std::vector<double> A{1.,4.,-5.,1.,0.,0.,0.,0.};
-  std::vector<double> B{-1.,1.,2.,3.,0.,0.,0.,0.};
+template<typename Real>
+void multiply() {
+  std::vector<Real> A{1.,4.,-5.,1.,0.,0.,0.,0.};
+  std::vector<Real> B{-1.,1.,2.,3.,0.,0.,0.,0.};
   
   multiply_halfcomplex(A,B);
   multiply_complex(A,B);
-  
+}
+
+int main()
+{
+  multiply<float>();
+  multiply<double>();
+  multiply<long double>();
+#ifdef BOOST_MATH_USE_FLOAT128
+  multiply<boost::multiprecision::float128>();
+#endif
+/* FIXME - doesn't work even with #include <boost/math/fft/bsl_backend.hpp>
+  multiply<boost::multiprecision::cpp_bin_float_100>();
+*/
   return 0;
 }
 

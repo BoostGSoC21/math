@@ -342,7 +342,7 @@
     public:
     using value_type      = T;
     using real_type       = T;
-    using complex_type    = std::complex<T>; // TODO: a complex selector, or the complex could be choosen by the user
+    using complex_type    = std::complex<T>; // TODO: a complex selector, or the complex could be choosen by the user / we have detail::select_complex<T>::type in fft/abstract_ring.hpp albeit unfinished.
     using allocator_type  = allocator_t;
     
     using backend         = BackendType<real_type,allocator_type>;
