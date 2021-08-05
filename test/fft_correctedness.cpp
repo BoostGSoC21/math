@@ -9,6 +9,9 @@
 #include <boost/multiprecision/complex128.hpp>
 #endif
 #include <boost/multiprecision/cpp_complex.hpp>
+// TODO:
+//#include <boost/multiprecision/mpfr.hpp>
+//#include <boost/multiprecision/mpc.hpp>
 #include <boost/random.hpp>
 
 #include "fft_test_helpers.hpp"
@@ -294,7 +297,7 @@ int main()
   test_fixed_transforms<complex_bsl_dft< boost::multiprecision::cpp_bin_float_100 >>(2);
   test_fixed_transforms<complex_bsl_dft< boost::multiprecision::cpp_bin_float_quad >>(2);
   // TODO:
-  //test_fixed_transforms<boost::multiprecision::mpfr_float_100,bsl_dft>(1);
+  //test_fixed_transforms<complex_bsl_dft< boost::multiprecision::mpfr_float_100 >>(1);
   
   for(int i=1;i<=(1<<10); i*=2)
   {

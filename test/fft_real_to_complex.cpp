@@ -1,10 +1,22 @@
 #include "math_unit_test.hpp"
+
+#include <boost/config.hpp>
+#include <boost/multiprecision/number.hpp>
+#ifdef BOOST_MATH_USE_FLOAT128
+#include <boost/multiprecision/complex128.hpp>
+#endif
+#include <boost/multiprecision/cpp_bin_float.hpp>
+//#include <boost/multiprecision/mpfr.hpp>
+//#include <boost/multiprecision/mpfi.hpp>
+
 #include <boost/math/fft/bsl_backend.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
+#include <boost/math/fft/abstract_ring.hpp>
 #include <vector>
 #include <iterator>
 #include <iostream>
+#include <boost/core/demangle.hpp>
 
 using namespace boost::math::fft;
 
@@ -22,7 +34,7 @@ template<class Backend>
 void test_r2c()
 {
   using Real    = typename Backend::value_type;
-  using Complex = std::complex<Real>;
+  using Complex = typename detail::select_complex<Real>::type;
   
   std::vector<Real> A{1.,2.,3.};
   std::vector<Complex> B;
@@ -38,11 +50,39 @@ void test_r2c()
   print(B);
 }
 
+template<typename Real>
+void test_bsl_fftw_gsl() {
+//test_r2c< bsl_rfft <Real> >();
+  test_r2c< fftw_rfft<Real> >();
+  test_r2c< gsl_rfft <Real> >();
+}
+
+template<typename Real>
+void test_bsl_fftw () {
+//test_r2c< bsl_rfft <Real> >();
+  test_r2c< fftw_rfft<Real> >();
+}
+
+template<typename Real>
+void test_bsl() {
+//test_r2c< bsl_rfft <Real> >();
+}
+
 int main()
 {
-  test_r2c< fftw_rfft<double > >();
-  test_r2c< gsl_rfft<double > >();
-  //test_r2c< bsl_dft<std::complex<double> > >();
+  test_bsl_fftw    <float      >();
+  test_bsl_fftw_gsl<double     >();
+  test_bsl_fftw    <long double>();
+
+// TODO
+#ifdef BOOST_MATH_USE_FLOAT128
+//test_bsl_fftw    <boost::multiprecision::float128>();
+#endif
+//test_bsl<boost::multiprecision::cpp_bin_float_100>();
+//test_bsl<boost::multiprecision::cpp_bin_float_quad>();
+//test_bsl<boost::multiprecision::mpfr_float_100>();
+//test_bsl<boost::multiprecision::mpfi_float_100>();
+
   return boost::math::test::report_errors();
 }
 
