@@ -28,14 +28,13 @@ void test_r2c()
   std::vector<Complex> B;
     
   Backend plan(A.size());
-  plan.real_to_complex(A.begin(),std::back_inserter(B));
+  plan.real_to_complex(A.begin(),A.end(),std::back_inserter(B));
   print(B);
   
   A.push_back(4);
-  plan.resize(A.size());
-  B.resize(plan.unique_complex_size());
+  B.resize(A.size());
   
-  plan.real_to_complex(A.begin(),B.begin());
+  plan.real_to_complex(A.begin(),A.end(),B.begin());
   print(B);
 }
 

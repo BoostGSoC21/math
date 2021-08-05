@@ -64,8 +64,8 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
   const std::size_t N = A.size();
   std::vector< std::complex<T> > TA(N),TB(N);
   boost::math::fft::fftw_rfft<T> P(N); 
-  P.real_to_complex(A.begin(),TA.begin());
-  P.real_to_complex(B.begin(),TB.begin());
+  P.real_to_complex(A.begin(),A.end(),TA.begin());
+  P.real_to_complex(B.begin(),B.end(),TB.begin());
   
   std::vector<T> C(N);
   
@@ -74,7 +74,7 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
     TA[i]*=TB[i];
   }
   
-  P.complex_to_real(TA.begin(),C.begin());
+  P.complex_to_real(TA.begin(),TA.end(),C.begin());
   std::transform(C.begin(), C.end(), C.begin(),
                  [N](T x) { return x / N; });
   

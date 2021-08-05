@@ -70,7 +70,6 @@
     void execute(
       InputIteratorType in_first, InputIteratorType /* in_last */,
       OutputIteratorType out,
-      std::size_t /* out_size */,
       EngineType engine, 
       typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == true)
                                && (std::is_convertible<OutputIteratorType,       value_type2*>::value == true))>::type* = nullptr)
@@ -84,7 +83,6 @@
     void execute(
       InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out,
-      std::size_t /* out_size */,
       EngineType engine,
       typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == false)
                                && (std::is_convertible<OutputIteratorType,       value_type2*>::value == true))>::type* = nullptr)
@@ -100,12 +98,11 @@
     void execute(
       InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out,
-      std::size_t out_size,
       EngineType engine,
       typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == true)
                                && (std::is_convertible<OutputIteratorType,       value_type2*>::value == false))>::type* = nullptr)
     {
-      my_mem_2.resize(out_size);
+      my_mem_2.resize(std::distance(in_first,in_last));
       engine(in_first,my_mem_2.data());
       std::copy(std::begin(my_mem_2), std::end(my_mem_2), out);
     }
@@ -116,13 +113,12 @@
     void execute(
       InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out,
-      std::size_t out_size,
       EngineType engine,
       typename std::enable_if<(   (std::is_convertible<InputIteratorType,  const value_type1*>::value == false)
                                && (std::is_convertible<OutputIteratorType,       value_type2*>::value == false))>::type* = nullptr)
     {
       my_mem_1.resize(std::distance(in_first,in_last));
-      my_mem_2.resize(out_size);
+      my_mem_2.resize(my_mem_1.size());
       std::copy(in_first, in_last, std::begin(my_mem_1));
       engine(my_mem_1.data(),my_mem_2.data());
       std::copy(std::begin(my_mem_2),std::end(my_mem_2), out);
@@ -334,35 +330,6 @@
           backend::backward(i,o);
         });
     }
-    
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
-    void r2c(
-      InputIteratorType in,
-      OutputIteratorType out)
-    {
-      executor_R2C::execute(in,size(),out,halfcomplex_size(),
-        [this](const real_type* i, complex_type* o)
-        {
-          backend::r2c(i,o);
-        });
-    }
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
-    void c2r(
-      InputIteratorType in,
-      OutputIteratorType out)
-    {
-      executor_C2R::execute(in,halfcomplex_size(),out,size(),
-        [this](const complex_type* i, real_type* o)
-        {
-          backend::c2r(i,o);
-        });
-    }
-    std::size_t halfcomplex_size()const
-    {
-      return size()/2 + 1;
-    }
   };
   
   template< template<class ... Args> class BackendType, class T, class allocator_t >
@@ -375,7 +342,7 @@
     public:
     using value_type      = T;
     using real_type       = T;
-    using complex_type    = std::complex<T>;
+    using complex_type    = std::complex<T>; // TODO: a complex selector, or the complex could be choosen by the user
     using allocator_type  = allocator_t;
     
     using backend         = BackendType<real_type,allocator_type>;
@@ -415,19 +382,6 @@
     }
     template<typename InputIteratorType,
              typename OutputIteratorType>
-    void real_to_complex(
-      InputIteratorType in,
-      OutputIteratorType out)
-    {
-      executor_r2c::execute(in,in+size(),out,unique_complex_size(),
-        [this](const real_type* i, complex_type* o)
-        {
-          backend::template real_to_complex<complex_type>(i,o);
-        });
-    }
-
-    template<typename InputIteratorType,
-             typename OutputIteratorType>
     void halfcomplex_to_real(
       InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out)
@@ -439,13 +393,29 @@
           backend::halfcomplex_to_real(i,o);
         });
     }
+    
+    template<typename InputIteratorType,
+             typename OutputIteratorType>
+    void real_to_complex(
+      InputIteratorType in_first, InputIteratorType in_last,
+      OutputIteratorType out)
+    {
+      resize(std::distance(in_first,in_last));
+      executor_r2c::execute(in_first,in_last,out,
+        [this](const real_type* i, complex_type* o)
+        {
+          backend::template real_to_complex<complex_type>(i,o);
+        });
+    }
+
     template<typename InputIteratorType,
              typename OutputIteratorType>
     void complex_to_real(
-      InputIteratorType in,
+      InputIteratorType in_first, InputIteratorType in_last,
       OutputIteratorType out)
     {
-      executor_c2r::execute(in,in+unique_complex_size(),out,size(),
+      resize(std::distance(in_first,in_last));
+      executor_c2r::execute(in_first,in_last,out,
         [this](const complex_type* i, real_type* o)
         {
           backend::template complex_to_real<complex_type>(i,o);
