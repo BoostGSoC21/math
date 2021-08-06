@@ -5,7 +5,7 @@
     default fft engine
 */
 
-#include <boost/math/fft.hpp>
+#include <boost/math/fft/bsl_backend.hpp>
 
 #include <iostream>
 #include <vector>
@@ -25,12 +25,15 @@ int main()
     std::vector< std::complex<double> > A{1.0,2.0,3.0,4.0},B(A.size());
     
     // default fft engine, forward transform, out-of-place
-    boost::math::fft::dft_forward(A.cbegin(),A.cend(),B.begin());
+    // following is called, but with an alias bsl_transform
+    // fft::transform<fft::bsl_dft<std::complex<double>>>::forward(A.cbegin(),A.cend(),B.begin());
+    fft::bsl_transform::forward(A.cbegin(),A.cend(),B.begin());
     
     print(B);
     
     // default fft engine, backward transform, in-place
-    fft::dft_backward(B.cbegin(),B.cend(),B.begin());
+    // fft::transform<fft::bsl_dft<std::complex<double>>>::backward(B.cbegin(),B.cend(),B.begin());
+    fft::bsl_transform::backward(B.cbegin(),B.cend(),B.begin());
     
     print(B);
     

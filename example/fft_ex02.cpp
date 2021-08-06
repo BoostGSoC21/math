@@ -5,7 +5,6 @@
     custom engine
 */
 
-#include <boost/math/fft.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
 
@@ -28,12 +27,14 @@ int main()
     std::vector< std::complex<double> > A{1.0,2.0,3.0,4.0},B(A.size());
     
     // gsl engine, forward transform, out-of-place
-    fft::dft_forward<fft::gsl_dft>(A.cbegin(),A.cend(),B.begin());
+    // fft::transform<fft::gsl_dft<std::complex<double>>>::forward(A.cbegin(),A.cend(),B.begin());
+    fft::gsl_transform::forward(A.cbegin(),A.cend(),B.begin());
     
     print(B);
     
     // fftw engine, backward transform, in-place
-    fft::dft_backward<fft::fftw_dft>(B.cbegin(),B.cend(),B.begin());
+    // fft::transform<fft::fftw_dft<std::complex<double>>>::backward(B.cbegin(),B.cend(),B.begin());
+    fft::fftw_transform::backward(B.cbegin(),B.cend(),B.begin());
     
     print(B);
     return 0;

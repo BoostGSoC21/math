@@ -14,300 +14,300 @@
 
 namespace boost { namespace math { namespace fft {
 
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_complex_dft_prime_rader
-{
-  /*
-    Special backend for testing the complex_dft_prime_rader implementation
-  */
-public:  
-  using value_type      = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t;
-public:
-  constexpr test_complex_dft_prime_rader(
-    std::size_t n,
-    const allocator_type& that_alloc = allocator_type{})
-    : my_size{n}, alloc{that_alloc}
-  { }
-  
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_prime_rader(in,in+size(),out,1,alloc);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_prime_rader(in,in+size(),out,-1,alloc);
-  }
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-  
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using rader_dft = detail::dft< test_complex_dft_prime_rader<RingType,Allocator_t> >;
-
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_dft_prime_bruteForce
-{
-  /*
-    Special backend for testing the dft_prime_bruteForce implementation
-  */
-public:
-  using value_type      = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t;
-  
-  constexpr test_dft_prime_bruteForce(
-    std::size_t n, 
-    const allocator_type& that_alloc = allocator_type{})
-    : my_size{n}, alloc{that_alloc}
-  { }
-
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
-    detail::dft_prime_bruteForce(in,in+size(),out,w,alloc);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
-    detail::dft_prime_bruteForce(in,in+size(),out,w,alloc);
-  }
-
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using bruteForce_dft = detail::dft< test_dft_prime_bruteForce<RingType,Allocator_t> >;
-
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_complex_dft_prime_bruteForce
-{
-  /*
-    Special backend for testing the complex_dft_prime_bruteForce implementation
-  */
-public:
-  using value_type      = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t;
-  
-  constexpr test_complex_dft_prime_bruteForce(
-    std::size_t n, 
-    const allocator_type& that_alloc = allocator_type{})
-    : my_size{n}, alloc{that_alloc}
-  { }
-
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_prime_bruteForce(in,in+size(),out,1,alloc);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_prime_bruteForce(in,in+size(),out,-1,alloc);
-  }
-
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using bruteForce_cdft = detail::dft< test_complex_dft_prime_bruteForce<RingType,Allocator_t> >;
-
-
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_dft_composite
-{
-  /*
-    Special backend for testing the dft_composite
-  */
-public:
-  using value_type = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t ;
-  
-  constexpr test_dft_composite(
-    std::size_t n,
-    const allocator_type& that_alloc = allocator_type{}
-    )
-    : my_size{n}, alloc{that_alloc}
-  { }
-
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
-    detail::dft_composite(in,in+size(),out,w,alloc);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
-    detail::dft_composite(in,in+size(),out,w,alloc);
-  }
-
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using composite_dft = detail::dft< test_dft_composite<RingType,Allocator_t> >;
-
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_complex_dft_composite
-{
-  /*
-    Special backend for testing the complex_dft_composite
-  */
-public:
-  using value_type = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t ;
-  
-  constexpr test_complex_dft_composite(
-    std::size_t n,
-    const allocator_type& that_alloc = allocator_type{})
-    : my_size{n}, alloc{that_alloc}
-  { }
-
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_composite(in,in+size(),out,1,alloc);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_composite(in,in+size(),out,-1,alloc);
-  }
-
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using composite_cdft = detail::dft< test_complex_dft_composite<RingType,Allocator_t> >;
-
-  
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_dft_power2
-{
-  /*
-    Special backend for testing the dft_power2 implementation
-  */
-public:
-  using value_type = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t ;
-  constexpr test_dft_power2(
-    std::size_t n,
-    const allocator_type& that_alloc = allocator_type{})
-    : my_size{n}, alloc{that_alloc}
-  { }
-
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
-    detail::dft_power2(in,in+size(),out,w);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
-    detail::dft_power2(in,in+size(),out,w);
-  }
-
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using power2_dft = detail::dft< test_dft_power2<RingType> >;
-
-
-template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
-class test_complex_dft_power2
-{
-  /*
-    Special backend for testing the complex_dft_power2 implementation
-  */
-public:
-  using value_type = NativeComplexType;
-  using real_value_type = typename NativeComplexType::value_type;
-  using allocator_type  = allocator_t ;
-  
-  constexpr test_complex_dft_power2(
-    std::size_t n,
-    const allocator_type& that_alloc = allocator_type{})
-    : my_size{n}, alloc{that_alloc}
-  { }
-
-  void resize(std::size_t new_size)
-  {
-    my_size = new_size;
-  }
-  constexpr std::size_t size() const { return my_size; }
-
-  void forward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_power2(in,in+size(),out,1);
-  }
-
-  void backward(const NativeComplexType* in, NativeComplexType* out) const
-  {
-    detail::complex_dft_power2(in,in+size(),out,-1);
-  }
-
-private:
-  std::size_t my_size;
-  allocator_type alloc;
-};
-
-template<class RingType, class Allocator_t = std::allocator<RingType> >
-using power2_cdft = detail::dft< test_complex_dft_power2<RingType> >;
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_complex_dft_prime_rader
+//{
+//  /*
+//    Special backend for testing the complex_dft_prime_rader implementation
+//  */
+//public:  
+//  using value_type      = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t;
+//public:
+//  constexpr test_complex_dft_prime_rader(
+//    std::size_t n,
+//    const allocator_type& that_alloc = allocator_type{})
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//  
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_prime_rader(in,in+size(),out,1,alloc);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_prime_rader(in,in+size(),out,-1,alloc);
+//  }
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//  
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using rader_dft = detail::dft< test_complex_dft_prime_rader<RingType,Allocator_t> >;
+//
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_dft_prime_bruteForce
+//{
+//  /*
+//    Special backend for testing the dft_prime_bruteForce implementation
+//  */
+//public:
+//  using value_type      = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t;
+//  
+//  constexpr test_dft_prime_bruteForce(
+//    std::size_t n, 
+//    const allocator_type& that_alloc = allocator_type{})
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
+//    detail::dft_prime_bruteForce(in,in+size(),out,w,alloc);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
+//    detail::dft_prime_bruteForce(in,in+size(),out,w,alloc);
+//  }
+//
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using bruteForce_dft = detail::dft< test_dft_prime_bruteForce<RingType,Allocator_t> >;
+//
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_complex_dft_prime_bruteForce
+//{
+//  /*
+//    Special backend for testing the complex_dft_prime_bruteForce implementation
+//  */
+//public:
+//  using value_type      = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t;
+//  
+//  constexpr test_complex_dft_prime_bruteForce(
+//    std::size_t n, 
+//    const allocator_type& that_alloc = allocator_type{})
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_prime_bruteForce(in,in+size(),out,1,alloc);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_prime_bruteForce(in,in+size(),out,-1,alloc);
+//  }
+//
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using bruteForce_cdft = detail::dft< test_complex_dft_prime_bruteForce<RingType,Allocator_t> >;
+//
+//
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_dft_composite
+//{
+//  /*
+//    Special backend for testing the dft_composite
+//  */
+//public:
+//  using value_type = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t ;
+//  
+//  constexpr test_dft_composite(
+//    std::size_t n,
+//    const allocator_type& that_alloc = allocator_type{}
+//    )
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
+//    detail::dft_composite(in,in+size(),out,w,alloc);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
+//    detail::dft_composite(in,in+size(),out,w,alloc);
+//  }
+//
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using composite_dft = detail::dft< test_dft_composite<RingType,Allocator_t> >;
+//
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_complex_dft_composite
+//{
+//  /*
+//    Special backend for testing the complex_dft_composite
+//  */
+//public:
+//  using value_type = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t ;
+//  
+//  constexpr test_complex_dft_composite(
+//    std::size_t n,
+//    const allocator_type& that_alloc = allocator_type{})
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_composite(in,in+size(),out,1,alloc);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_composite(in,in+size(),out,-1,alloc);
+//  }
+//
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using composite_cdft = detail::dft< test_complex_dft_composite<RingType,Allocator_t> >;
+//
+//  
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_dft_power2
+//{
+//  /*
+//    Special backend for testing the dft_power2 implementation
+//  */
+//public:
+//  using value_type = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t ;
+//  constexpr test_dft_power2(
+//    std::size_t n,
+//    const allocator_type& that_alloc = allocator_type{})
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    NativeComplexType w{detail::complex_inverse_root_of_unity<NativeComplexType>(size())};
+//    detail::dft_power2(in,in+size(),out,w);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    NativeComplexType w{detail::complex_root_of_unity<NativeComplexType>(size())};
+//    detail::dft_power2(in,in+size(),out,w);
+//  }
+//
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using power2_dft = detail::dft< test_dft_power2<RingType> >;
+//
+//
+//template<class NativeComplexType, class allocator_t = std::allocator<NativeComplexType>>
+//class test_complex_dft_power2
+//{
+//  /*
+//    Special backend for testing the complex_dft_power2 implementation
+//  */
+//public:
+//  using value_type = NativeComplexType;
+//  using real_value_type = typename NativeComplexType::value_type;
+//  using allocator_type  = allocator_t ;
+//  
+//  constexpr test_complex_dft_power2(
+//    std::size_t n,
+//    const allocator_type& that_alloc = allocator_type{})
+//    : my_size{n}, alloc{that_alloc}
+//  { }
+//
+//  void resize(std::size_t new_size)
+//  {
+//    my_size = new_size;
+//  }
+//  constexpr std::size_t size() const { return my_size; }
+//
+//  void forward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_power2(in,in+size(),out,1);
+//  }
+//
+//  void backward(const NativeComplexType* in, NativeComplexType* out) const
+//  {
+//    detail::complex_dft_power2(in,in+size(),out,-1);
+//  }
+//
+//private:
+//  std::size_t my_size;
+//  allocator_type alloc;
+//};
+//
+//template<class RingType, class Allocator_t = std::allocator<RingType> >
+//using power2_cdft = detail::dft< test_complex_dft_power2<RingType> >;
 
 namespace my_modulo_lib
 {

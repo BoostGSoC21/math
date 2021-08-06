@@ -6,7 +6,6 @@
 //  Version 1.0. (See accompanying file LICENSE_1_0.txt
 //  or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/math/fft.hpp>
 #include <boost/math/fft/bsl_backend.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
@@ -16,39 +15,45 @@
 #include <vector>
 #include <array>
 
-template<class T,int N >
+template< class fft_engine,int N >
 void transform_api()
 {   
+  using T = typename fft_engine::value_type;
+  using boost::math::fft::transform;
+  
   // test same type of iterator
   std::vector<T> A(N),B(A.size());
-  boost::math::fft::dft_forward(A.begin(),A.end(),B.begin());
-  boost::math::fft::dft_backward(A.begin(),A.end(),B.begin());
+  transform<fft_engine>::forward(A.begin(),A.end(),B.begin());
+  transform<fft_engine>::backward(A.begin(),A.end(),B.begin());
+  
+  // experimental
+  // backend_t<T,std::allocator<T>>::static_forward(A.begin(),A.end(),B.begin());
   
   // test with raw pointers
-  boost::math::fft::dft_forward(A.data(),A.data()+A.size(),B.data());
-  boost::math::fft::dft_backward(A.data(),A.data()+A.size(),B.data());
+  transform<fft_engine>::forward(A.data(),A.data()+A.size(),B.data());
+  transform<fft_engine>::backward(A.data(),A.data()+A.size(),B.data());
 
   const auto & cA = A;
   // const iterator as input
-  boost::math::fft::dft_forward(cA.begin(),cA.end(),B.begin());
-  boost::math::fft::dft_backward(cA.begin(),cA.end(),B.begin());
+  transform<fft_engine>::forward(cA.begin(),cA.end(),B.begin());
+  transform<fft_engine>::backward(cA.begin(),cA.end(),B.begin());
   
   // const pointer as input
-  boost::math::fft::dft_forward(cA.data(),cA.data()+cA.size(),B.data());
-  boost::math::fft::dft_backward(cA.data(),cA.data()+cA.size(),B.data());
+  transform<fft_engine>::forward(cA.data(),cA.data()+cA.size(),B.data());
+  transform<fft_engine>::backward(cA.data(),cA.data()+cA.size(),B.data());
   
-  std::array<T,N> C;
+  std::array<T,N> C; // lets temporarily align this array here to avoid seg. fault
   // input as vector::iterator, output as array::iterator
-  boost::math::fft::dft_forward(A.begin(),A.end(),C.begin());
-  boost::math::fft::dft_backward(A.begin(),A.end(),C.begin());
-  boost::math::fft::dft_forward(A.data(),A.data()+A.size(),C.data());
-  boost::math::fft::dft_backward(A.data(),A.data()+A.size(),C.data());
+  transform<fft_engine>::forward(A.begin(),A.end(),C.begin());
+  transform<fft_engine>::backward(A.begin(),A.end(),C.begin());
+  transform<fft_engine>::forward(A.data(),A.data()+A.size(),C.data());
+  transform<fft_engine>::backward(A.data(),A.data()+A.size(),C.data());
   
   // input as array::iterator, output as vector::iterator
-  boost::math::fft::dft_forward(C.begin(),C.end(),B.begin());
-  boost::math::fft::dft_backward(C.begin(),C.end(),B.begin());
-  boost::math::fft::dft_forward(C.data(),C.data()+C.size(),B.data());
-  boost::math::fft::dft_backward(C.data(),C.data()+C.size(),B.data());
+  transform<fft_engine>::forward(C.begin(),C.end(),B.begin());
+  transform<fft_engine>::backward(C.begin(),C.end(),B.begin());
+  transform<fft_engine>::forward(C.data(),C.data()+C.size(),B.data());
+  transform<fft_engine>::backward(C.data(),C.data()+C.size(),B.data());
 }
 
 template<class Backend >
@@ -82,21 +87,31 @@ void test_traits()
 
 int main()
 {
+  using boost::math::fft::fftw_dft;
+  using boost::math::fft::gsl_dft;
+  using boost::math::fft::bsl_dft;
+  
   test_traits();
   
-  transform_api< std::complex<float>,      4 >();
-  transform_api< std::complex<double>,     4 >();
-  transform_api< std::complex<long double>,4 >();
+  transform_api<fftw_dft<std::complex<float>>,      4 >();
+  transform_api<fftw_dft<std::complex<double>>,     4 >();
+  transform_api<fftw_dft<std::complex<long double>>,4 >();
   
-  plan_api<boost::math::fft::fftw_dft<std::complex<double>> >(5);
-  plan_api<boost::math::fft::fftw_dft<std::complex<float>> >(5);
-  plan_api<boost::math::fft::fftw_dft<std::complex<long double>> >(5);
+  transform_api<gsl_dft<std::complex<double>>,4 >();
   
-  plan_api<boost::math::fft::gsl_dft<std::complex<double>> >(5);
+  transform_api<bsl_dft<std::complex<float>>,      4 >();
+  transform_api<bsl_dft<std::complex<double>>,     4 >();
+  transform_api<bsl_dft<std::complex<long double>>,4 >();
   
-  plan_api<boost::math::fft::bsl_dft<std::complex<float>> >(5);
-  plan_api<boost::math::fft::bsl_dft<std::complex<double>> >(5);
-  plan_api<boost::math::fft::bsl_dft<std::complex<long double>> >(5);
+  plan_api<fftw_dft<std::complex<double>> >(5);
+  plan_api<fftw_dft<std::complex<float>> >(5);
+  plan_api<fftw_dft<std::complex<long double>> >(5);
+  
+  plan_api<gsl_dft<std::complex<double>> >(5);
+  
+  plan_api<bsl_dft<std::complex<float>> >(5);
+  plan_api<bsl_dft<std::complex<double>> >(5);
+  plan_api<bsl_dft<std::complex<long double>> >(5);
   
   return 0;
 }

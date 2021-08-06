@@ -5,7 +5,6 @@
     fftw engine
 */
 
-#include <boost/math/fft.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 
 #include <iostream>
@@ -26,8 +25,8 @@ int main()
 {
     std::vector< std::complex<double> > A{1.0,2.0,3.0,4.0},B(A.size());
     
-    // fftw engine
-    fft::dft< std::complex<double>, fft::fftw_dft > P(A.size());
+    // fftw engine, create plan using libfftw3
+    fft::fftw_dft< std::complex<double> > P(A.size());
     
     // forward transform, out-of-place
     P.forward(A.cbegin(),A.cend(),B.begin());

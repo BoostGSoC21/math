@@ -11,7 +11,10 @@
 
 #ifndef BOOST_MATH_DFTAPI_HPP
   #define BOOST_MATH_DFTAPI_HPP
-  
+
+#include <algorithm>
+#include <vector>
+
   namespace boost { namespace math { namespace fft { 
   namespace detail {
 
@@ -34,12 +37,16 @@
       -> right distributivity, ie. (b+c)*a == b*a + c*a
   */
   
-  template< class BackendType >
-  class dft : public BackendType
+  template< template<class ... Args> class BackendType, class T, class allocator_t >
+  class dft : public BackendType<T,allocator_t>
   {
     public:
-    using value_type     = typename BackendType::value_type;
-    using allocator_type = typename BackendType::allocator_type;
+    using base_type       = BackendType<T,allocator_t>;
+    using value_type      = typename base_type::value_type;
+    using allocator_type  = typename base_type::allocator_type;
+    
+    template<class U, class A>
+    using other = dft<BackendType,U,A>;
     
     private:
     using RingType = value_type;
@@ -59,9 +66,9 @@
       resize(std::distance(in_first,in_last));
       
       if(ex==execution_type::backward)
-        backend_t::backward(in_first,out);
+        base_type::backward(in_first,out);
       else
-        backend_t::forward(in_first,out);
+        base_type::forward(in_first,out);
     }
     
     template<typename InputIteratorType,
@@ -77,9 +84,9 @@
       std::copy(in_first, in_last, out);
       
       if(ex==execution_type::backward)
-        backend_t::backward(out,out);
+        base_type::backward(out,out);
       else
-        backend_t::forward(out,out);
+        base_type::forward(out,out);
     }
 
     template<typename InputIteratorType,
@@ -95,9 +102,9 @@
       my_mem.resize(size());
 
       if(ex==execution_type::backward)
-        backend_t::backward(in_first,my_mem.data());
+        base_type::backward(in_first,my_mem.data());
       else
-        backend_t::forward(in_first,my_mem.data());
+        base_type::forward(in_first,my_mem.data());
 
       std::copy(std::begin(my_mem), std::end(my_mem), out);
     }
@@ -116,25 +123,24 @@
       std::copy(in_first, in_last, std::begin(my_mem));
 
       if(ex==execution_type::backward)
-        backend_t::backward(my_mem.data(),my_mem.data());
+        base_type::backward(my_mem.data(),my_mem.data());
       else
-        backend_t::forward(my_mem.data(),my_mem.data());
+        base_type::forward(my_mem.data(),my_mem.data());
         
       std::copy(std::begin(my_mem),std::end(my_mem), out);
     }
 
   public:
-    using backend_t = BackendType;
-    using backend_t::size;
-    using backend_t::resize;
+    using base_type::size;
+    using base_type::resize;
 
     // complex types ctor. n: the size of the dft
     constexpr dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
-      : backend_t(n,in_alloc), alloc{in_alloc}, my_mem{in_alloc} { }
+      : base_type(n,in_alloc), alloc{in_alloc}, my_mem{in_alloc} { }
 
     // ring types ctor. n: the size of the dft, w: an n-root of unity
     constexpr dft(unsigned int n, RingType w, const allocator_type& in_alloc = allocator_type{} ) 
-      : backend_t( n, w, in_alloc ), alloc{in_alloc}, my_mem{in_alloc} { }
+      : base_type( n, w, in_alloc ), alloc{in_alloc}, my_mem{in_alloc} { }
 
     template<typename InputIteratorType,
              typename OutputIteratorType>
@@ -153,9 +159,125 @@
     {
       execute(execution_type::backward,in_first,in_last,out);
     }
+    
+    // experimental
+    // template<typename InputIterator,
+    //          typename OutputIterator>
+    // static void static_forward(InputIterator  input_begin,
+    //                  InputIterator  input_end,
+    //                  OutputIterator output)
+    // {
+    //   base_type plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+    //   plan.forward(input_begin, output);
+    // }
   };
   
   } // namespace detail
+  
+  template< class dft_plan_t >
+  struct transform
+  {
+    
+    template<class RingType, class allocator_t = std::allocator<RingType> >
+    using plan_type = typename dft_plan_t::template other< RingType,allocator_t > ;
+    
+    
+    // std::transform-like Fourier Transform API
+    // for complex types
+    template<typename InputIterator,
+             typename OutputIterator>
+    static void forward(InputIterator  input_begin,
+                     InputIterator  input_end,
+                     OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      plan.forward(input_begin, input_end, output);
+    }
+  
+    // std::transform-like Fourier Transform API
+    // for complex types
+    template<typename InputIterator,
+             typename OutputIterator>
+    static void backward(InputIterator  input_begin,
+                      InputIterator  input_end,
+                      OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      plan.backward(input_begin, input_end, output);
+    }
+    
+    // std::transform-like Fourier Transform API
+    // for Ring types
+    template<typename InputIterator,
+             typename OutputIterator,
+             typename value_type>
+    static void forward(InputIterator  input_begin,
+                     InputIterator  input_end,
+                     OutputIterator output,
+                     value_type w)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
+      plan.forward(input_begin, input_end, output);
+    }
+  
+    // std::transform-like Fourier Transform API
+    // for Ring types
+    template<typename InputIterator,
+             typename OutputIterator,
+             typename value_type>
+    static void backward(InputIterator  input_begin,
+                      InputIterator  input_end,
+                      OutputIterator output,
+                      value_type w)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
+      plan.backward(input_begin, input_end, output);
+    }
+  
+    template<typename InputIterator1,
+             typename InputIterator2,
+             typename OutputIterator>
+    static void convolution(
+        InputIterator1 input1_begin,
+        InputIterator1 input1_end,
+        InputIterator2 input2_begin,
+        OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator1>::value_type;
+      using real_value_type  = typename input_value_type::value_type;
+      // using allocator_type    = std::allocator<input_value_type>;
+      const long N = std::distance(input1_begin,input1_end);
+      plan_type<input_value_type> plan(static_cast<unsigned int>(N));
+      
+      std::vector<input_value_type> In1(N),In2(N),Out(N);
+      
+      std::copy(input1_begin,input1_end,In1.begin());
+      
+      InputIterator2 input2_end{input2_begin};
+      std::advance(input2_end,N);
+      std::copy(input2_begin,input2_end,In2.begin());
+      
+      plan.forward(In1.begin(),In1.end(),In1.begin());
+      plan.forward(In2.begin(),In2.end(),In2.begin());
+      
+      // direct convolution
+      std::transform(In1.begin(),In1.end(),In2.begin(),Out.begin(),std::multiplies<input_value_type>()); 
+      
+      plan.backward(Out.begin(),Out.end(),Out.begin());
+      
+      const real_value_type inv_N = real_value_type{1}/N;
+      for(auto & x : Out)
+          x *= inv_N;
+      
+      std::copy(Out.begin(),Out.end(),output);
+    }
+    
+  };
+  
   } } } // namespace boost::math::fft
 
 

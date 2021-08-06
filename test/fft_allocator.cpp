@@ -7,7 +7,6 @@
 //  or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include "math_unit_test.hpp"
-#include <boost/math/fft.hpp>
 #include <boost/math/fft/bsl_backend.hpp>
 #include "fft_test_helpers.hpp"
 #include <boost/random.hpp>
@@ -47,7 +46,7 @@ struct my_allocator
         throw std::bad_alloc{};
       return reinterpret_cast<T*>(p);
     }
-    void deallocate(T* p,size_t n)
+    void deallocate(T* p,size_t /*n*/)
     {
       std::free(p);
     }
