@@ -101,7 +101,8 @@ int main()
   multiply<double>();
   multiply<long double>();
 #ifdef BOOST_MATH_USE_FLOAT128
-//multiply<boost::multiprecision::float128>();
+// FIXME:
+// multiply<boost::multiprecision::float128>();
 #endif
 /* FIXME - doesn't work even with #include <boost/math/fft/bsl_backend.hpp>
   multiply<boost::multiprecision::cpp_bin_float_100>();
