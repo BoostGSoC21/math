@@ -14,7 +14,7 @@
 #include <boost/math/fft/fftw_backend.hpp>
 #include <iostream>
 #include <vector>
-#include <complex>
+#include <boost/math/fft/multiprecision_complex.hpp>
 #include <boost/core/demangle.hpp>
 #include <boost/multiprecision/cpp_bin_float.hpp>
 #ifdef BOOST_MATH_USE_FLOAT128
@@ -67,7 +67,7 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
 {
   std::cout << "Polynomial multiplication using complex: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
-  std::vector< std::complex<T> > TA(N),TB(N);
+  std::vector< typename boost::multiprecision::make_boost_complex<T>::type > TA(N),TB(N);
   boost::math::fft::fftw_rfft<T> P(N); 
   P.real_to_complex(A.begin(),A.end(),TA.begin());
   P.real_to_complex(B.begin(),B.end(),TB.begin());
@@ -101,7 +101,7 @@ int main()
   multiply<double>();
   multiply<long double>();
 #ifdef BOOST_MATH_USE_FLOAT128
-  multiply<boost::multiprecision::float128>();
+//multiply<boost::multiprecision::float128>();
 #endif
 /* FIXME - doesn't work even with #include <boost/math/fft/bsl_backend.hpp>
   multiply<boost::multiprecision::cpp_bin_float_100>();

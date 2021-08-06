@@ -81,7 +81,7 @@ void test_traits()
   static_assert(is_boost_complex< my_type >::value==false,"");
   static_assert(is_boost_complex< my_type >::value==false,"");
   static_assert(is_boost_complex<
-    std::complex<boost::multiprecision::cpp_bin_float_50> >::value,"");
+    std::complex<boost::multiprecision::cpp_bin_float_50> >::value==false,"");
   static_assert(is_boost_complex< boost::multiprecision::cpp_complex_quad >::value,"");
 }
 
