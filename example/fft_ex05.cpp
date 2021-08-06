@@ -78,14 +78,16 @@ int main()
     test_bsl<std::complex<double>>();
     test_bsl<std::complex<long double>>();
 #ifdef BOOST_MATH_USE_FLOAT128
-    test_bsl<boost::multiprecision::complex128>();
+    test_bsl<                               boost::multiprecision::complex128        >();
+    test_bsl<boost::multiprecision::complex<boost::multiprecision::float128          >>(); // same thing.
 #endif
-    test_bsl<boost::multiprecision::cpp_complex_50>();
-    test_bsl<boost::multiprecision::cpp_complex_100>();
-    test_bsl<boost::multiprecision::cpp_complex_quad>();
-//  test_bsl<boost::multiprecision::number<boost::multiprecision::complex_adaptor<boost::multiprecision::cpp_dec_float<50>>, boost::multiprecision::et_off>>();
-//  test_bsl<boost::multiprecision::mpc_complex_50>();
-//std::cout << "AA " << boost::core::demangle(typeid(aa).name()) << "\n";
+    test_bsl<                               boost::multiprecision::cpp_complex_50     >();
+    test_bsl<boost::multiprecision::complex<boost::multiprecision::cpp_bin_float_50  >>(); // same thing.
+    test_bsl<                               boost::multiprecision::cpp_complex_quad   >();
+    test_bsl<boost::multiprecision::complex<boost::multiprecision::cpp_bin_float_quad>>(); // same thing.
+    test_bsl<                               boost::multiprecision::mpc_complex_50     >();
+    test_bsl<boost::multiprecision::complex<boost::multiprecision::mpfr_float_50     >>(); // same thing.
+
     test_fftw<std::complex<float>>();
     test_fftw<std::complex<double>>();
     test_fftw<std::complex<long double>>();
