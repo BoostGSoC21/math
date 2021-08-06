@@ -67,7 +67,7 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
 {
   std::cout << "Polynomial multiplication using complex: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
-  std::vector< typename boost::multiprecision::make_boost_complex<T>::type > TA(N),TB(N);
+  std::vector< boost::multiprecision::complex<T> > TA(N),TB(N);
   boost::math::fft::fftw_rfft<T> P(N); 
   P.real_to_complex(A.begin(),A.end(),TA.begin());
   P.real_to_complex(B.begin(),B.end(),TB.begin());

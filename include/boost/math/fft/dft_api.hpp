@@ -345,7 +345,7 @@
     public:
     using value_type      = T;
     using real_type       = T;
-    using complex_type    = typename boost::multiprecision::make_boost_complex<T>::type;
+    using complex_type    = boost::multiprecision::complex<T>;
     using allocator_type  = allocator_t;
     
     using backend         = BackendType<real_type,allocator_type>;

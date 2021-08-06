@@ -85,7 +85,6 @@ int main()
     test_bsl<boost::multiprecision::cpp_complex_quad>();
 //  test_bsl<boost::multiprecision::number<boost::multiprecision::complex_adaptor<boost::multiprecision::cpp_dec_float<50>>, boost::multiprecision::et_off>>();
 //  test_bsl<boost::multiprecision::mpc_complex_50>();
-//using aa = boost::multiprecision::make_boost_complex<void>::type;
 //std::cout << "AA " << boost::core::demangle(typeid(aa).name()) << "\n";
     test_fftw<std::complex<float>>();
     test_fftw<std::complex<double>>();

@@ -7,9 +7,9 @@
 //  or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // This file provides two traits:
-//  boost::multiprecision::make_boost_complex<Real>         - creates a coplex type supported by Boost
-//  boost::multiprecision::is_boost_complex<T>::value       - a bool telling whether the type is a complex number supported by Boost
-//                                                            it has nothing to do with boost::is_complex<T> which recognizes only std::complex<T>
+//  boost::multiprecision::complex<Real>                 - creates a coplex type supported by Boost
+//  boost::multiprecision::is_boost_complex<T>::value    - a bool telling whether the type is a complex number supported by Boost
+//                                                         it has nothing to do with boost::is_complex<T> which recognizes only std::complex<T>
 //
 // TODO: this file should be split apart and each specializetion should go to the end of the relevant file in Boost.Multiprecision
 //   → specialization for float128      → complex128    goes to <boost/multiprecision/complex128.hpp>
@@ -32,7 +32,7 @@
   #include <boost/multiprecision/cpp_complex.hpp>
   #include <boost/multiprecision/mpc.hpp>
 
-  namespace boost { namespace multiprecision {
+  namespace boost { namespace multiprecision { namespace detail {
 
     template<typename T>
     struct make_boost_complex {
@@ -76,6 +76,10 @@
                                     , typename std::decay<T>::type
                                     >::value;
     };
+
+  }  // boost::multiprecision::detail
+  template<typename T> using complex          = typename detail::make_boost_complex<T>::type;
+  template<typename T> using is_boost_complex = detail::is_boost_complex<T>; // may be a duplicate of https://github.com/BoostGSoC21/math/pull/8#discussion_r660549430
 
   }} // boost::multiprecision
 
