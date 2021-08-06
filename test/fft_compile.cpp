@@ -73,16 +73,16 @@ struct my_type{};
 
 void test_traits()
 {
-  using boost::math::fft::detail::is_complex;
-  static_assert(is_complex< std::complex<float> >::value,"");
-  static_assert(is_complex< std::complex<double> >::value,"");
-  static_assert(is_complex< std::complex<long double> >::value,"");
-  static_assert(is_complex< float >::value==false,"");
-  static_assert(is_complex< my_type >::value==false,"");
-  static_assert(is_complex< my_type >::value==false,"");
-  static_assert(is_complex<
+  using boost::math::fft::detail::is_boost_complex;
+  static_assert(is_boost_complex< std::complex<float> >::value,"");
+  static_assert(is_boost_complex< std::complex<double> >::value,"");
+  static_assert(is_boost_complex< std::complex<long double> >::value,"");
+  static_assert(is_boost_complex< float >::value==false,"");
+  static_assert(is_boost_complex< my_type >::value==false,"");
+  static_assert(is_boost_complex< my_type >::value==false,"");
+  static_assert(is_boost_complex<
     std::complex<boost::multiprecision::cpp_bin_float_50> >::value,"");
-  static_assert(is_complex< boost::multiprecision::cpp_complex_quad >::value,"");
+  static_assert(is_boost_complex< boost::multiprecision::cpp_complex_quad >::value,"");
 }
 
 int main()

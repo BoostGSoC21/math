@@ -12,9 +12,9 @@
   #include <algorithm>
   #include <cmath>
   #include <type_traits>
+  #include <boost/math/fft/multiprecision_complex.hpp>
 
   #include <boost/math/fft/algorithms.hpp>
-  #include <boost/math/fft/abstract_ring.hpp>
   #include <boost/math/fft/dft_api.hpp>
 
   namespace boost { namespace math {  namespace fft { 
@@ -27,7 +27,7 @@
     It handles RingTypes and it calls the appropriate specialized functions if
     the type is complex.
     
-    A type is considered "complex" if is_complex::value == true. A user-defined
+    A type is considered "complex" if is_boost_complex::value == true. A user-defined
     type can become complex by specializing that trait.
     
     We have specialized algorithms for complex numbers and general purpose DFT
@@ -52,7 +52,7 @@
     enum plan_type { forward_plan , backward_plan};
     
     template<typename U = RingType>
-    typename std::enable_if< detail::is_complex<U>::value==true  >::type
+    typename std::enable_if< detail::is_boost_complex<U>::value==true  >::type
     execute(plan_type plan, const RingType * in, RingType* out)const
     {
       const long N = static_cast<long>(size());
