@@ -52,7 +52,7 @@
     enum plan_type { forward_plan , backward_plan};
     
     template<typename U = RingType>
-    typename std::enable_if< detail::is_boost_complex<U>::value==true  >::type
+    typename std::enable_if< boost::multiprecision::is_boost_complex<U>::value==true  >::type
     execute(plan_type plan, const RingType * in, RingType* out)const
     {
       const long N = static_cast<long>(size());

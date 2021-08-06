@@ -16,6 +16,9 @@
 #include <vector>
 #include <complex>
 
+// TODO: once this file is split as described inside it, then this include can be removed, because the user code will include the complex type of their choosing and along with the necessary traits.
+#include <boost/math/fft/multiprecision_complex.hpp>
+
   namespace boost { namespace math { namespace fft { 
   namespace detail {
 
@@ -342,7 +345,7 @@
     public:
     using value_type      = T;
     using real_type       = T;
-    using complex_type    = std::complex<T>; // TODO: a complex selector, or the complex could be choosen by the user / we have detail::select_complex<T>::type in fft/abstract_ring.hpp albeit unfinished.
+    using complex_type    = typename boost::multiprecision::make_boost_complex<T>::type;
     using allocator_type  = allocator_t;
     
     using backend         = BackendType<real_type,allocator_type>;

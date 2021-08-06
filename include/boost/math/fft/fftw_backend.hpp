@@ -261,7 +261,7 @@
   private:
     using real_value_type    = typename NativeComplexType::value_type;
     using plan_type          = typename detail::fftw_traits_c_interface<real_value_type>::plan_type;
-    using complex_value_type = typename detail::select_complex<real_value_type>::type;
+    using complex_value_type = typename boost::multiprecision::make_boost_complex<real_value_type>::type;
     using fftw_real_value_type = typename detail::fftw_traits_c_interface<real_value_type>::real_value_type;
    
     void execute(plan_type plan, plan_type unaligned_plan, const complex_value_type* in, complex_value_type* out) const

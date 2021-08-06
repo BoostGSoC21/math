@@ -54,7 +54,7 @@ void dft_forward_bruteForce(
 template<template<class ...Args> class backend_t, class T>
 void test_directly(unsigned int N, int tolerance)
 {
-  using Complex = typename detail::select_complex<T>::type;
+  using Complex = typename boost::multiprecision::make_boost_complex<T>::type;
   const T tol = tolerance*std::numeric_limits<T>::epsilon();
   
   // ...
@@ -91,7 +91,7 @@ void test_convolution(unsigned int N, int tolerance)
   using Complex = typename backend_t::value_type;
   using T = typename Complex::value_type;
   
-  // using Complex = typename detail::select_complex<T>::type;
+  // using Complex = typename boost::multiprecision::make_boost_complex<T>::type;
   const T tol = tolerance*std::numeric_limits<T>::epsilon();
   
   // ...
@@ -131,7 +131,7 @@ void test_convolution(unsigned int N, int tolerance)
 template<class Backend>
 void test_fixed_transforms(int tolerance)
 {
-  // using Complex = typename detail::select_complex<T>::type;
+  // using Complex = typename boost::multiprecision::make_boost_complex<T>::type;
   using Complex = typename Backend::value_type;
   using real_value_type = typename Complex::value_type;
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
@@ -228,34 +228,34 @@ void test_inverse(int N, int tolerance)
 }
 
 template<class T>
-using complex_fftw_dft = fftw_dft< typename detail::select_complex<T>::type  >;
+using complex_fftw_dft = fftw_dft< typename boost::multiprecision::make_boost_complex<T>::type >;
 
 template<class T>
-using complex_gsl_dft = gsl_dft< typename detail::select_complex<T>::type  >;
+using complex_gsl_dft = gsl_dft< typename boost::multiprecision::make_boost_complex<T>::type >;
 
 template<class T>
-using complex_bsl_dft = bsl_dft< typename detail::select_complex<T>::type  >;
+using complex_bsl_dft = bsl_dft< typename boost::multiprecision::make_boost_complex<T>::type >;
 
 //template<class T>
-//using complex_rader_dft = rader_dft< typename detail::select_complex<T>::type  >;
+//using complex_rader_dft = rader_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 //
 //template<class T>
-//using complex_bruteForce_dft = bruteForce_dft< typename detail::select_complex<T>::type  >;
+//using complex_bruteForce_dft = bruteForce_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 //
 //template<class T>
-//using complex_bruteForce_cdft = bruteForce_cdft< typename detail::select_complex<T>::type  >;
+//using complex_bruteForce_cdft = bruteForce_cdft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 //
 //template<class T>
-//using complex_composite_dft = composite_dft< typename detail::select_complex<T>::type  >;
+//using complex_composite_dft = composite_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 //
 //template<class T>
-//using complex_composite_cdft = composite_cdft< typename detail::select_complex<T>::type  >;
+//using complex_composite_cdft = composite_cdft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 //
 //template<class T>
-//using complex_power2_dft = power2_dft< typename detail::select_complex<T>::type  >;
+//using complex_power2_dft = power2_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 //
 //template<class T>
-//using complex_power2_cdft = power2_cdft< typename detail::select_complex<T>::type  >;
+//using complex_power2_cdft = power2_cdft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 
 int main()
 {

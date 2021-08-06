@@ -92,13 +92,13 @@ void test_inverse(int N, int tolerance)
 }
 
 template<class T>
-using complex_fftw_dft = fftw_dft< typename detail::select_complex<T>::type  >;
+using complex_fftw_dft = fftw_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 
 template<class T>
-using complex_gsl_dft = gsl_dft< typename detail::select_complex<T>::type  >;
+using complex_gsl_dft = gsl_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 
 template<class T>
-using complex_bsl_dft = bsl_dft< typename detail::select_complex<T>::type  >;
+using complex_bsl_dft = bsl_dft< typename boost::multiprecision::make_boost_complex<T>::type  >;
 
 int main()
 {

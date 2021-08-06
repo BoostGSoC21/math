@@ -73,7 +73,7 @@ struct my_type{};
 
 void test_traits()
 {
-  using boost::math::fft::detail::is_boost_complex;
+  using boost::multiprecision::is_boost_complex;
   static_assert(is_boost_complex< std::complex<float> >::value,"");
   static_assert(is_boost_complex< std::complex<double> >::value,"");
   static_assert(is_boost_complex< std::complex<long double> >::value,"");

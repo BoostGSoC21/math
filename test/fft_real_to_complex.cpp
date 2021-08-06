@@ -34,7 +34,7 @@ template<class Backend>
 void test_r2c()
 {
   using Real    = typename Backend::value_type;
-  using Complex = typename detail::select_complex<Real>::type;
+  using Complex = typename boost::multiprecision::make_boost_complex<Real>::type;
   
   std::vector<Real> A{1.,2.,3.};
   std::vector<Complex> B;

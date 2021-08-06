@@ -31,9 +31,37 @@
 #include <boost/multiprecision/cpp_complex.hpp>
 #include <boost/multiprecision/mpc.hpp>
 
-namespace boost { namespace math {  namespace fft {  namespace detail {
-//namespace boost { namespace multiprecision {
+//namespace boost { namespace math {  namespace fft {  namespace detail {
+namespace boost { namespace multiprecision {
 
+template<typename T>
+struct make_boost_complex {
+  using type = std::complex<T>;
+};
+
+template<>
+struct make_boost_complex<boost::multiprecision::float128> {
+  using type = boost::multiprecision::complex128;
+};
+
+template <unsigned Digits, backends::digit_base_type DigitBase, class Allocator, class Exponent, Exponent MinExponent, Exponent MaxExponent, expression_template_option ExpressionTemplates>
+struct make_boost_complex< number< cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinExponent, MaxExponent>, ExpressionTemplates> > {
+  using type = number<complex_adaptor<cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinExponent, MaxExponent>>, ExpressionTemplates>;
+};
+
+template <unsigned Digits, mpfr_allocation_type AllocationType, expression_template_option ExpressionTemplates>
+struct make_boost_complex< number< backends::mpfr_float_backend<Digits, AllocationType>, ExpressionTemplates> > {
+  using type = number<mpc_complex_backend<Digits>, ExpressionTemplates>;
+};
+
+template <typename T> struct is_boost_complex {
+  static constexpr bool value = std::is_same<
+                                  typename make_boost_complex<typename T::value_type>::type
+                                , typename std::decay<T>::type
+                                >::value;
+};
+
+/*
     #if __cplusplus < 201700L
     template<typename ...> using void_t = void;
     #else
@@ -54,9 +82,7 @@ namespace boost { namespace math {  namespace fft {  namespace detail {
          > > : std::true_type
     {};
 
-
-
-  template<typename RealType> struct select_complex {
+  template<typename RealType> struct make_boost_complex {
     using R    = typename std::decay<RealType>::type;
 
     static constexpr bool is_fundamental_fpnumber =
@@ -101,9 +127,10 @@ namespace boost { namespace math {  namespace fft {  namespace detail {
   #endif
       >::type;
   };
+*/
 
-//}} // boost::multiprecision
-} } } } // namespace boost::math::fft::detail
+}} // boost::multiprecision
+//} } } } // namespace boost::math::fft::detail
 
 #endif
 
