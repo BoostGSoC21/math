@@ -24,7 +24,6 @@
   #include <boost/multiprecision/cpp_bin_float.hpp>
   #include <boost/multiprecision/cpp_dec_float.hpp>
   #include <boost/multiprecision/mpfr.hpp>
-  #include <boost/multiprecision/mpfi.hpp>
   #include <boost/core/demangle.hpp>
   #include <boost/core/enable_if.hpp>
   // now include complex types
