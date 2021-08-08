@@ -1488,3 +1488,4 @@ test-suite fft_all :
    [ run fft_iterators.cpp           ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//gsl ../tools//mpfr ../tools//gmp                                       : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
    [ run fft_non-complex.cpp         ../tools//mpfr ../tools//gmp                                                                                                           : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
    [ run fft_auxiliary_functions.cpp ../tools//mpfr ../tools//gmp                                                                                                           : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
+;
