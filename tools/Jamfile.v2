@@ -37,6 +37,7 @@ project
 
 lib gmp ;
 lib mpfr ;
+lib mpc ;
 lib mpfi ;
 lib quadmath ;
 
