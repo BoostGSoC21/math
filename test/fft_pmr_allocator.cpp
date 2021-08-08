@@ -104,7 +104,7 @@ void test_inverse(int N, int tolerance)
 template<class T>
 struct complex_bsl_dft
 {
-  using Complex = typename detail::select_complex<T>::type ;
+  using Complex = boost::multiprecision::complex<T> ;
   using type = bsl_dft< Complex, boost::container::pmr::polymorphic_allocator<Complex> >;
 };
 int main()

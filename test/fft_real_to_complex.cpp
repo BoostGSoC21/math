@@ -2,6 +2,7 @@
 
 #include <boost/config.hpp>
 #include <boost/multiprecision/number.hpp>
+#include <boost/math/fft/multiprecision_complex.hpp>
 #ifdef BOOST_MATH_USE_FLOAT128
 #include <boost/multiprecision/complex128.hpp>
 #endif
@@ -12,7 +13,6 @@
 #include <boost/math/fft/bsl_backend.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
-#include <boost/math/fft/abstract_ring.hpp>
 #include <vector>
 #include <iterator>
 #include <iostream>
@@ -34,7 +34,7 @@ template<class Backend>
 void test_r2c()
 {
   using Real    = typename Backend::value_type;
-  using Complex = typename detail::select_complex<Real>::type;
+  using Complex = boost::multiprecision::complex<Real>;
   
   std::vector<Real> A{1.,2.,3.};
   std::vector<Complex> B;
