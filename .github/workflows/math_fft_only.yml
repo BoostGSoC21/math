@@ -48,7 +48,7 @@ jobs:
         if: steps.retry1.outcome=='failure'
         run: sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
       - name: Install packages
-        run: sudo apt install libfftw3-dev libgsl-dev
+        run: sudo apt install libfftw3-dev libgsl-dev libmpfr-dev libgmp-dev libmpc-dev
       - name: Checkout main boost
         run: git clone -b develop --depth 1 https://github.com/boostorg/boost.git ../boost-root
       - name: Update tools/boostdep
