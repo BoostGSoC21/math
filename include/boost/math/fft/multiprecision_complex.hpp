@@ -12,9 +12,9 @@
 //                                                         it has nothing to do with boost::is_complex<T> which recognizes only std::complex<T>
 //
 // TODO: this file should be split apart and each specializetion should go to the end of the relevant file in Boost.Multiprecision
-//   → specialization for float128      → complex128    goes to <boost/multiprecision/complex128.hpp>
-//   → specialization for cpp_bin_float → cpp_complex   goes to <boost/multiprecision/cpp_complex.hpp>
-//   → specialization for mpfr_float    → mpc_complex   goes to <boost/multiprecision/mpc.hpp>
+//   --> specialization for float128      --> complex128    goes to <boost/multiprecision/complex128.hpp>
+//   --> specialization for cpp_bin_float --> cpp_complex   goes to <boost/multiprecision/cpp_complex.hpp>
+//   --> specialization for mpfr_float    --> mpc_complex   goes to <boost/multiprecision/mpc.hpp>
 
 #ifndef BOOST_MATH_FFT_MULTIPRECISION_COMPLEX
   #define BOOST_MATH_FFT_MULTIPRECISION_COMPLEX
@@ -38,32 +38,33 @@
       using type = std::complex<T>;
     };
 
-    // float128 → <boost/multiprecision/complex128.hpp>
+    // float128 --> <boost/multiprecision/complex128.hpp>
     template<>
     struct make_boost_complex<boost::multiprecision::float128> {
       using type = boost::multiprecision::complex128;
     };
 
-    // cpp_bin_float → <boost/multiprecision/cpp_complex.hpp>
+    // cpp_bin_float --> <boost/multiprecision/cpp_complex.hpp>
     template <unsigned Digits, backends::digit_base_type DigitBase, class Allocator, class Exponent, Exponent MinExponent, Exponent MaxExponent, expression_template_option ExpressionTemplates>
     struct make_boost_complex< number< cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinExponent, MaxExponent>, ExpressionTemplates> > {
       using type = number<complex_adaptor<cpp_bin_float<Digits, DigitBase, Allocator, Exponent, MinExponent, MaxExponent>>, ExpressionTemplates>;
     };
 
-    // mpc_complex → <boost/multiprecision/mpc.hpp>
+    // mpc_complex --> <boost/multiprecision/mpc.hpp>
     template <unsigned Digits, mpfr_allocation_type AllocationType, expression_template_option ExpressionTemplates>
     struct make_boost_complex< number< backends::mpfr_float_backend<Digits, AllocationType>, ExpressionTemplates> > {
       using type = number<mpc_complex_backend<Digits>, ExpressionTemplates>;
     };
 
     #if __cplusplus < 201700L
-    template<typename ...> using void_t = void;
+    template<typename... Ts> struct make_void { typedef void type;};
+    template<typename... Ts> using void_t = typename make_void<Ts...>::type;
     #else
     using std::void_t;
     #endif
 
     template< class, class = void > struct has_value_type : std::false_type { };
-    template< class T > struct has_value_type<T, std::void_t<typename T::value_type>> : std::true_type { };
+    template< class T > struct has_value_type<T, void_t<typename T::value_type>> : std::true_type { };
 
     template <typename T, bool = has_value_type<T>::value > struct is_boost_complex {
       static constexpr bool value = false;
