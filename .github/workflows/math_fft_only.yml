@@ -85,7 +85,7 @@ jobs:
       matrix:
         compiler: [ g++ ]
         standard: [ c++11, c++14, c++17, c++2a ]
-        suite: [ all_fft ]
+        suite: [ fft_all ]
     steps:
       - uses: actions/checkout@v2
         with:
