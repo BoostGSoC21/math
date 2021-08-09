@@ -574,28 +574,14 @@
     // -> size(out) >= N
     {
       const std::size_t N = size();
-      vector_t<real_value_type> tmp(out,out+N);
-      out[0]=tmp[0];
-      for(unsigned int i=1,j=1;j<N;++i,j+=2)
-      {
-        out[j] = tmp[i];
-        if(j+1<N)
-          out[j+1] = tmp[N-i];
-      }
+      for(unsigned int i=1,j=N-1;i<j;++i,--j)
+        out[j] = -out[j];
     }
     void unpack_halfcomplex(real_value_type* out) const
     // precondition:
     // -> size(out) >= N
     {
-      const std::size_t N = size();
-      vector_t<real_value_type> tmp(out,out+N);
-      out[0]=tmp[0];
-      for(unsigned int i=1,j=1;j<N;++i,j+=2)
-      {
-        out[i] = tmp[j];
-        if(j+1<N)
-          out[N-i] = tmp[j+1];
-      }
+      pack_halfcomplex(out);  
     }
 
   public:
