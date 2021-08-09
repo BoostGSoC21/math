@@ -187,7 +187,7 @@
         detail::real_inverse_dft_power2(in,in+N,out,1);
       }else
       {
-        detail::real_dft_prime_bruteForce(in,in+N,out,1,alloc);
+        detail::real_inverse_dft_prime_bruteForce(in,in+N,out,1,alloc);
       }
     }
 
