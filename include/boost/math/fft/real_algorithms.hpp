@@ -208,6 +208,62 @@
     }
   }
   
+  template<class T>
+  void real_dft_prime_bruteForce_outofplace(
+    const T* in_first, 
+    const T* in_last, 
+    T* out, int sign)
+  /*
+    assumptions: 
+    - allocated memory in out is enough to hold distance(in_first,in_last) element,
+    - out!=in
+  */
+  {
+    const long N = static_cast<long>(std::distance(in_first,in_last));
+    if(N<=0)
+      return;
+    
+    out[0] = std::accumulate(in_first+1,in_last,in_first[0]);
+    
+    for(long i=1,j=N-1;i<j;++i,--j)
+    {
+      T sum_x{in_first[0]},sum_y = 0;
+      for(long l=1;l<N; ++l)
+      {
+        sum_x += in_first[l] * complex_root_of_unity_real<T>(N,i*l*sign);
+        sum_y += in_first[l] * complex_root_of_unity_imag<T>(N,i*l*sign);
+      }
+      // if(i<j) // i==j never happens for odd sizes
+      out[j] = -sum_y;
+      out[i] = sum_x;
+    }
+  }
+  
+  template<class T,class Allocator_t>
+  void real_dft_prime_bruteForce_inplace(
+    T* in_first, 
+    T* in_last, 
+    int sign,
+    const Allocator_t& alloc)
+  {
+    std::vector<T,Allocator_t> work_space(in_first,in_last,alloc);
+    real_dft_prime_bruteForce_outofplace(in_first,in_last,work_space.data(),sign);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class T, class Allocator_t>
+  void real_dft_prime_bruteForce(
+    const T* in_first, 
+    const T* in_last, 
+    T* out, 
+    int sign,
+    const Allocator_t& alloc)
+  {
+    if(in_first==out)
+      real_dft_prime_bruteForce_inplace(out,out+std::distance(in_first,in_last),sign,alloc);
+    else
+      real_dft_prime_bruteForce_outofplace(in_first,in_last,out,sign);
+  }
+  
   } // namespace detail
 
   } } } // namespace boost::math::fft
