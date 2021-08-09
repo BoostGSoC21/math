@@ -36,6 +36,12 @@ struct my_allocator
     my_allocator()
     {
     }
+    
+    template<class U>
+    my_allocator(const my_allocator<U>&)
+    {
+    }
+    
     ~my_allocator()
     {
     }
@@ -111,7 +117,7 @@ void test_inverse(int N, int tolerance)
 template<class T>
 struct complex_bsl_dft
 {
-  using Complex = typename detail::select_complex<T>::type ;
+  using Complex = boost::multiprecision::complex<T> ;
   using type = bsl_dft< Complex, my_allocator<Complex> >;
 };
 

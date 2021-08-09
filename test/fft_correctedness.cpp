@@ -1,14 +1,17 @@
 #include "math_unit_test.hpp"
+#include <boost/math/fft/multiprecision_complex.hpp>
 #include <boost/math/fft/bsl_backend.hpp>
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
 #include <boost/math/fft/algorithms.hpp>
-#include <boost/math/fft/abstract_ring.hpp>
 #include <boost/math/constants/constants.hpp>
 #ifdef BOOST_MATH_USE_FLOAT128
 #include <boost/multiprecision/complex128.hpp>
 #endif
 #include <boost/multiprecision/cpp_complex.hpp>
+// TODO:
+//#include <boost/multiprecision/mpfr.hpp>
+//#include <boost/multiprecision/mpc.hpp>
 #include <boost/random.hpp>
 
 #include "fft_test_helpers.hpp"
@@ -51,7 +54,7 @@ void dft_forward_bruteForce(
 template<template<class ...Args> class backend_t, class T>
 void test_directly(unsigned int N, int tolerance)
 {
-  using Complex = typename detail::select_complex<T>::type;
+  using Complex = boost::multiprecision::complex<T>;
   const T tol = tolerance*std::numeric_limits<T>::epsilon();
   
   // ...
@@ -88,7 +91,7 @@ void test_convolution(unsigned int N, int tolerance)
   using Complex = typename backend_t::value_type;
   using T = typename Complex::value_type;
   
-  // using Complex = typename detail::select_complex<T>::type;
+  // using Complex = boost::multiprecision::complex<T>;
   const T tol = tolerance*std::numeric_limits<T>::epsilon();
   
   // ...
@@ -128,7 +131,7 @@ void test_convolution(unsigned int N, int tolerance)
 template<class Backend>
 void test_fixed_transforms(int tolerance)
 {
-  // using Complex = typename detail::select_complex<T>::type;
+  // using Complex = boost::multiprecision::complex<T>;
   using Complex = typename Backend::value_type;
   using real_value_type = typename Complex::value_type;
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
@@ -225,34 +228,34 @@ void test_inverse(int N, int tolerance)
 }
 
 template<class T>
-using complex_fftw_dft = fftw_dft< typename detail::select_complex<T>::type  >;
+using complex_fftw_dft = fftw_dft< boost::multiprecision::complex<T> >;
 
 template<class T>
-using complex_gsl_dft = gsl_dft< typename detail::select_complex<T>::type  >;
+using complex_gsl_dft = gsl_dft< boost::multiprecision::complex<T> >;
 
 template<class T>
-using complex_bsl_dft = bsl_dft< typename detail::select_complex<T>::type  >;
+using complex_bsl_dft = bsl_dft< boost::multiprecision::complex<T> >;
 
 //template<class T>
-//using complex_rader_dft = rader_dft< typename detail::select_complex<T>::type  >;
+//using complex_rader_dft = rader_dft< boost::multiprecision::complex<T>  >;
 //
 //template<class T>
-//using complex_bruteForce_dft = bruteForce_dft< typename detail::select_complex<T>::type  >;
+//using complex_bruteForce_dft = bruteForce_dft< boost::multiprecision::complex<T>  >;
 //
 //template<class T>
-//using complex_bruteForce_cdft = bruteForce_cdft< typename detail::select_complex<T>::type  >;
+//using complex_bruteForce_cdft = bruteForce_cdft< boost::multiprecision::complex<T>  >;
 //
 //template<class T>
-//using complex_composite_dft = composite_dft< typename detail::select_complex<T>::type  >;
+//using complex_composite_dft = composite_dft< boost::multiprecision::complex<T>  >;
 //
 //template<class T>
-//using complex_composite_cdft = composite_cdft< typename detail::select_complex<T>::type  >;
+//using complex_composite_cdft = composite_cdft< boost::multiprecision::complex<T>  >;
 //
 //template<class T>
-//using complex_power2_dft = power2_dft< typename detail::select_complex<T>::type  >;
+//using complex_power2_dft = power2_dft< boost::multiprecision::complex<T>  >;
 //
 //template<class T>
-//using complex_power2_cdft = power2_cdft< typename detail::select_complex<T>::type  >;
+//using complex_power2_cdft = power2_cdft< boost::multiprecision::complex<T>  >;
 
 int main()
 {
@@ -294,7 +297,7 @@ int main()
   test_fixed_transforms<complex_bsl_dft< boost::multiprecision::cpp_bin_float_100 >>(2);
   test_fixed_transforms<complex_bsl_dft< boost::multiprecision::cpp_bin_float_quad >>(2);
   // TODO:
-  //test_fixed_transforms<boost::multiprecision::mpfr_float_100,bsl_dft>(1);
+  //test_fixed_transforms<complex_bsl_dft< boost::multiprecision::mpfr_float_100 >>(1);
   
   for(int i=1;i<=(1<<10); i*=2)
   {
