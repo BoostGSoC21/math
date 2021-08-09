@@ -170,6 +170,17 @@
     {
       const long N = static_cast<long>(size());
       // select the implementation according to the DFT size
+      switch(N)
+      {
+        case 0:
+          return;
+        case 1:
+          out[0]=in[0];
+          return;
+        case 2:
+          detail::real_dft_2(in,out,1);
+          return;
+      }
       if( detail::is_power2(N))
       {
         detail::real_dft_power2(in,in+N,out,1);
@@ -182,8 +193,19 @@
     {
       const long N = static_cast<long>(size());
       // select the implementation according to the DFT size
-      if( detail::is_power2(N))
+      switch(N)
       {
+        case 0:
+          return;
+        case 1:
+          out[0]=in[0];
+          return;
+        case 2:
+          detail::real_inverse_dft_2(in,out,1);
+          return;
+      }
+      if( detail::is_power2(N))
+      { 
         detail::real_inverse_dft_power2(in,in+N,out,1);
       }else
       {

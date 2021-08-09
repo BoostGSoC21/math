@@ -17,6 +17,25 @@
   
   namespace detail {
   
+  template<class T>
+  inline void real_dft_2(
+    const T* in, 
+    T* out, int)
+  {
+    T o1 = in[0]+in[1], o2 = in[0]-in[1] ;
+    out[0] = o1;
+    out[1] = o2;
+  }
+  template<class T>
+  inline void real_inverse_dft_2(
+    const T* in, 
+    T* out, int)
+  {
+    T o1 = in[0]+in[1], o2 = in[0]-in[1] ;
+    out[0] = o1*.5;
+    out[1] = o2*.5;
+  }
+  
   template<class RealType>
   RealType complex_root_of_unity_real(long n,long p=1)
   /*
