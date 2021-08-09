@@ -15,6 +15,7 @@
   #include <boost/math/fft/multiprecision_complex.hpp>
 
   #include <boost/math/fft/algorithms.hpp>
+  #include <boost/math/fft/real_algorithms.hpp>
   #include <boost/math/fft/dft_api.hpp>
 
   namespace boost { namespace math {  namespace fft { 
@@ -138,10 +139,95 @@
     std::size_t my_size{};
   };
   
+  
+  //template<class T, class allocator_t = std::allocator<T> >
+  //class bsl_rfft_backend
+  //{
+  //public:
+  //  using value_type     = T;
+  //  using allocator_type = allocator_t;
+  //  
+  //private:
+  //  
+  //  void execute(plan_type plan, const RingType * in, RingType* out)const
+  //  {
+  //    const long N = static_cast<long>(size());
+  //    const int sign = (plan == forward_plan ? 1 : -1);
+  //    
+  //    // select the implementation according to the DFT size
+  //    switch(N)
+  //    {
+  //      case 0:
+  //        return;
+  //      case 1:
+  //        out[0]=in[0];
+  //        return;
+  //      case 2:
+  //        detail::complex_dft_2(in,out,sign);
+  //        return;
+  //    }
+  //    
+  //    if( detail::is_power2(N) )
+  //    {
+  //      detail::complex_dft_power2(in,in+N,out,sign);
+  //    }
+  //    else if(detail::is_prime(N))
+  //    {
+  //      // detail::complex_dft_prime_bruteForce(in,in+N,out,sign);
+  //      detail::complex_dft_prime_rader(in,in+N,out,sign,alloc);
+  //    }
+  //    else
+  //    {
+  //      detail::complex_dft_composite(in,in+N,out,sign,alloc);
+  //    }
+  //  }
+  //  
+  //public:
+  //  
+  //  // the provided root of unity is used instead of exp(-i 2 pi/n)
+  //  constexpr bsl_rfft_backend(std::size_t n, const allocator_type& in_alloc = allocator_type{}):
+  //      alloc{in_alloc},
+  //      my_size{n}
+  //  { 
+  //  }
+
+  //  ~bsl_rfft_backend()
+  //  {
+  //  }
+  //  
+  //  void resize(std::size_t new_size)
+  //  {
+  //    my_size = new_size;
+  //  }
+  //  
+  //  constexpr std::size_t size() const { return my_size; }
+
+  //  void dft(const RingType* in, RingType* out, RingType w) const
+  //  {
+  //    const long N = static_cast<long>(size());
+  //    // select the implementation according to the DFT size
+  //    if( detail::is_power2(N))
+  //    {
+  //      detail::dft_power2(in,in+N,out,w);
+  //    }
+  //    else
+  //    {
+  //      detail::dft_composite(in,in+N,out,w,alloc);
+  //    }
+  //  }
+
+  //private:
+  //  allocator_type alloc;
+  //  std::size_t my_size{};
+  //};
+  
   } // namespace detail
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using bsl_dft = detail::complex_dft<detail::bsl_backend,RingType,Allocator_t>;
+  
+  //template<class T = double, class Allocator_t = std::allocator<T> >
+  //using bsl_rfft = detail::real_dft<detail::bsl_rfft_backend,T,Allocator_t>;
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using bsl_algebraic_dft = detail::algebraic_dft<detail::bsl_backend,RingType,Allocator_t>;
