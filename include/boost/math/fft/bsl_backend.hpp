@@ -186,8 +186,12 @@
         detail::real_dft_power2(in,in+N,out,1);
       }else
       {
-        detail::real_dft_prime_bruteForce(in,in+N,out,1,alloc);
+        detail::real_dft_composite(in,in+N,out,1,alloc);
       }
+      //if(detail::is_prime(N))
+      //{
+      //  detail::real_dft_prime_rader(in,in+N,out,sign,alloc);
+      //}
     }
     void halfcomplex_to_real(const value_type* in, value_type* out) const
     {
@@ -207,10 +211,14 @@
       if( detail::is_power2(N))
       { 
         detail::real_inverse_dft_power2(in,in+N,out,1);
-      }else
+      }else  
       {
-        detail::real_inverse_dft_prime_bruteForce(in,in+N,out,1,alloc);
+        //detail::real_inverse_dft_composite(in,in+N,out,1,alloc);
       }
+      //if(detail::is_prime(N))
+      //{
+      //  detail::real_inverse_dft_prime_rader(in,in+N,out,sign,alloc);
+      //}
     }
 
   private:

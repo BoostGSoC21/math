@@ -369,10 +369,20 @@
     
     std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
     
+    //auto show = [&] (const ComplexType* beg, const ComplexType* end)
+    //{
+    //  for(;beg!=end;++beg)
+    //  {
+    //    std::cout << *beg << ", ";
+    //  }
+    //  std::cout << "\n";
+    //};
+    
     // butterfly pattern
     long len = 1;
     for (int ip=0;ip<nfactors;++ip)
     {
+      //std::cout << "pass " << ip << "\n";
       int p = prime_factors[ip];
       long len_old = len;
       len *= p;
@@ -380,6 +390,7 @@
       std::vector<ComplexType,allocator_type> tmp(p,alloc);
       for (long i = 0; i < n; i += len)
       {
+        //std::cout << "    i = " << i << "\n";
         for(long k=0;k<len_old;++k)
         {
           for(long j=0;j<p;++j)
@@ -399,6 +410,7 @@
           for(long j=0;j<p;++j)
             out[i+ j*len_old + k] = tmp[j];
         }
+        //show(out+i,out+i+len);
       }
     }
   }

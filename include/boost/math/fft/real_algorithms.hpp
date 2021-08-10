@@ -346,6 +346,147 @@
       real_inverse_dft_prime_bruteForce_outofplace(in_first,in_last,out,sign);
   }
   
+  template <class T, class allocator_t>
+  void real_dft_composite_outofplace(
+            const T *in_first, 
+            const T *in_last, 
+            T* out, 
+            int sign,
+            const allocator_t& alloc)
+  {
+    /*
+      Cooley-Tukey mapping, intrinsically out-of-place, Decimation in Time
+      composite sizes.
+    */
+    using allocator_type = allocator_t;
+    using ComplexType = ::boost::multiprecision::complex<T>; 
+    using ComplexAllocator = typename std::allocator_traits<allocator_type>::rebind_alloc<ComplexType>;
+    
+    const long n = static_cast<long>(std::distance(in_first,in_last));
+    if(n <=0 )
+      return;
+    
+    if (n == 1)
+    {
+        out[0]=in_first[0];
+        return;
+    }
+    std::array<int,32> prime_factors;
+    const int nfactors = prime_factorization(n,prime_factors.begin());
+    
+    // reorder input
+    for (long i = 0; i < n; ++i)
+    {
+        long j = 0, k = i;
+        for (int ip=0;ip<nfactors;++ip)
+        {
+            int p = prime_factors[ip];
+            j = j * p + k % p;
+            k /= p;
+        }
+        out[j] = in_first[i];
+    }
+    
+    std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
+    
+    //auto show = [&] (const T* beg, const T* end)
+    //{
+    //  for(;beg!=end;++beg)
+    //  {
+    //    std::cout << *beg << ", ";
+    //  }
+    //  std::cout << "\n";
+    //};
+    
+    // butterfly pattern
+    long len = 1;
+    for (int ip=0;ip<nfactors;++ip)
+    {
+      int p = prime_factors[ip];
+      long len_old = len;
+      len *= p;
+      
+      std::vector<ComplexType,ComplexAllocator> tmp(p,alloc);
+      //std::cout << "pass " << ip << "\n";
+      for (long i = 0; i < n; i += len)
+      {
+        //std::cout << "    i = " << i << "\n";
+        for(long k=0;2*k<=len_old;++k)
+        {
+          if(k==0)
+          {
+            tmp[0] = ComplexType{out[i],0.};
+            for(long j=1;j<p;++j)
+              tmp[j] = ComplexType{out[i + j*len_old],0.};
+          }else if(2*k == len_old)
+          {
+            tmp[0] = ComplexType{out[i + k ],0.};
+            for(long j=1;j<p;++j)
+              tmp[j] = ComplexType{out[i + j*len_old +k ],0.}
+                * complex_root_of_unity<ComplexType>(len,k*j*sign);
+          }else
+          {
+            tmp[0] = ComplexType{out[i + k ],-out[i+len_old-k]};
+            for(long j=1;j<p;++j)
+              tmp[j] = ComplexType{out[i + j*len_old +k ],-out[i+j*len_old + len_old-k]}
+                * complex_root_of_unity<ComplexType>(len,k*j*sign);
+          }
+          if(p==2)
+          {
+            complex_dft_2(tmp.data(),tmp.data(),sign);
+          }
+          else
+          {
+            complex_dft_prime_rader<ComplexType,ComplexAllocator>(tmp.data(),tmp.data()+p,tmp.data(),sign,alloc);
+          }
+          for(long j=0;j<p;++j)
+          {
+            int posx = j*len_old + k, posy = len - k - j*len_old;
+            
+            if(posx==0)
+            {
+              out[i+posx] = tmp[j].real();
+            }else if(posx>posy)
+            {
+              out[i+posx] = tmp[j].imag();
+              out[i+posy] = tmp[j].real();
+            }else
+            {
+              out[i+posy] = -tmp[j].imag();
+              out[i+posx] = tmp[j].real();
+            }
+          }
+        }
+        //show(out+i,out+i+len);
+      }
+    }
+  }
+  
+  template<class T,class Allocator_t>
+  void real_dft_composite_inplace(
+          T* in_first, 
+          T* in_last, 
+          int sign,
+          const Allocator_t& alloc)
+  {
+    std::vector<T,Allocator_t> work_space(in_first,in_last,alloc);
+    real_dft_composite_outofplace(in_first,in_last,work_space.data(),sign,alloc);
+    std::copy(work_space.begin(),work_space.end(),in_first);
+  }
+  template<class T, class Allocator_t>
+  void real_dft_composite(
+          const T* in_first, 
+          const T* in_last, 
+          T* out, 
+          int sign,
+          const Allocator_t& alloc)
+  {
+    if(in_first==out)
+      real_dft_composite_inplace(out,out+std::distance(in_first,in_last),sign,alloc);
+    else
+      real_dft_composite_outofplace(in_first,in_last,out,sign,alloc);
+  }
+  
   } // namespace detail
 
   } } } // namespace boost::math::fft
