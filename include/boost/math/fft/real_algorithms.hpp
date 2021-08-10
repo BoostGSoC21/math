@@ -360,7 +360,7 @@
     */
     using allocator_type = allocator_t;
     using ComplexType = ::boost::multiprecision::complex<T>; 
-    using ComplexAllocator = typename std::allocator_traits<allocator_type>::rebind_alloc<ComplexType>;
+    using ComplexAllocator = typename std::allocator_traits<allocator_type>::template rebind_alloc<ComplexType>;
     
     const long n = static_cast<long>(std::distance(in_first,in_last));
     if(n <=0 )
