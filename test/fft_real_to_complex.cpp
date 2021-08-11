@@ -65,9 +65,10 @@ void test_r2c(int n,int tolerance=1)
   // check if the inverse recovers the original array
   {
     Real diff{0.0};
+    const Real inv_n = Real{1.0}/n;
     for(unsigned int i=0;i<A.size();++i)
     {
-      diff += std::abs(A[i]-iHC[i]);
+      diff += std::abs(A[i]-iHC[i]*inv_n);
     }
     diff /= A.size();
     CHECK_MOLLIFIED_CLOSE(Real{0.0},diff,tol);
