@@ -269,7 +269,7 @@ int main()
   test_fixed_transforms<complex_fftw_dft<long double>>(1);
 #endif  
    
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
   test_fixed_transforms<complex_fftw_dft<boost::multiprecision::float128>>(1);
 #endif
   
@@ -319,7 +319,7 @@ int main()
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
 #endif
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_fftw_dft<boost::multiprecision::float128>>(i,1);
 #endif
 #if defined(__GNUC__)
@@ -328,7 +328,7 @@ int main()
     test_inverse<complex_bsl_dft<float>>(i,1);
     test_inverse<complex_bsl_dft<double>>(i,1);
     test_inverse<complex_bsl_dft<long double>>(i,1);
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_bsl_dft<boost::multiprecision::float128>>(i,1);
 #endif
     test_inverse<complex_bsl_dft<boost::multiprecision::cpp_bin_float_50>>(i,1);
@@ -362,7 +362,7 @@ int main()
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
 #endif
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_fftw_dft<boost::multiprecision::float128>>(i,1);
 #endif
 #if defined(__GNUC__)
@@ -371,7 +371,7 @@ int main()
     test_inverse<complex_bsl_dft<float>>(i,1);
     test_inverse<complex_bsl_dft<double>>(i,1);
     test_inverse<complex_bsl_dft<long double>>(i,1);
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_bsl_dft<boost::multiprecision::float128>>(i,1);
 #endif
     test_inverse<complex_bsl_dft<boost::multiprecision::cpp_bin_float_50>>(i,1);
@@ -389,7 +389,7 @@ int main()
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
 #endif
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_fftw_dft<boost::multiprecision::float128>>(i,1);
 #endif
 #if defined(__GNUC__)
@@ -398,7 +398,7 @@ int main()
     test_inverse<complex_bsl_dft<float>>(i,2);
     test_inverse<complex_bsl_dft<double>>(i,2);
     test_inverse<complex_bsl_dft<long double>>(i,2);
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_bsl_dft<boost::multiprecision::float128>>(i,2);
 #endif
     test_inverse<complex_bsl_dft<boost::multiprecision::cpp_bin_float_50>>(i,2);
@@ -429,7 +429,7 @@ int main()
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
 #endif
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_fftw_dft<boost::multiprecision::float128>>(i,1);
 #endif
 #if defined(__GNUC__)
@@ -438,7 +438,7 @@ int main()
     test_inverse<complex_bsl_dft<float>>(i,2);
     test_inverse<complex_bsl_dft<double>>(i,2);
     test_inverse<complex_bsl_dft<long double>>(i,2);
-#if (defined(BOOST_MATH_USE_FLOAT128) and defined(__GNUC__))
+#if defined(BOOST_MATH_USE_FLOAT128)
     test_inverse<complex_bsl_dft<boost::multiprecision::float128>>(i,2);
 #endif
     test_inverse<complex_bsl_dft<boost::multiprecision::cpp_bin_float_50>>(i,2);
