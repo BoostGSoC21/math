@@ -235,6 +235,10 @@ namespace fft { namespace detail {
         pack_halfcomplex(out);
         gsl_fft_halfcomplex_transform(
           out,1, N, halfcomplex_wtable, real_wspace);
+        
+        const real_value_type inv_N = real_value_type{1.0}/N;
+        for(unsigned int i=0;i<N;++i)
+          out[i] *= inv_N;
       }
       
       void free()
