@@ -87,31 +87,41 @@ void test_traits()
 
 int main()
 {
+  #if defined(__GNUC__)
   using boost::math::fft::fftw_dft;
   using boost::math::fft::gsl_dft;
+  #endif
   using boost::math::fft::bsl_dft;
-  
+
   test_traits();
-  
+
+  #if defined(__GNUC__)
   transform_api<fftw_dft<std::complex<float>>,      4 >();
   transform_api<fftw_dft<std::complex<double>>,     4 >();
   transform_api<fftw_dft<std::complex<long double>>,4 >();
-  
+  #endif
+
+  #if defined(__GNUC__)
   transform_api<gsl_dft<std::complex<double>>,4 >();
-  
+  #endif
+
   transform_api<bsl_dft<std::complex<float>>,      4 >();
   transform_api<bsl_dft<std::complex<double>>,     4 >();
   transform_api<bsl_dft<std::complex<long double>>,4 >();
-  
+
+  #if defined(__GNUC__)
   plan_api<fftw_dft<std::complex<double>> >(5);
   plan_api<fftw_dft<std::complex<float>> >(5);
   plan_api<fftw_dft<std::complex<long double>> >(5);
-  
+  #endif
+
+  #if defined(__GNUC__)
   plan_api<gsl_dft<std::complex<double>> >(5);
-  
+  #endif
+
   plan_api<bsl_dft<std::complex<float>> >(5);
   plan_api<bsl_dft<std::complex<double>> >(5);
   plan_api<bsl_dft<std::complex<long double>> >(5);
-  
+
   return 0;
 }

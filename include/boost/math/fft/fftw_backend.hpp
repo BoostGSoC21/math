@@ -11,14 +11,17 @@
   
   #include <memory>
 
+  #if defined(__GNUC__)
   #include <fftw3.h>
+  #endif
   #include <boost/math/fft/dft_api.hpp>
   #include <boost/math/fft/multiprecision_complex.hpp>
 
   namespace boost { namespace math {  namespace fft {
 
   namespace detail {
-  
+
+  #if defined(__GNUC__)
   template<typename T>
   struct fftw_traits_c_interface;
 
@@ -190,6 +193,8 @@
     
     static int alignment_of(real_value_type* p) { return ::fftwl_alignment_of(p); }
   };
+  #endif
+
   #ifdef BOOST_MATH_USE_FLOAT128
   template<>
   struct fftw_traits_c_interface<boost::multiprecision::float128>
@@ -250,14 +255,14 @@
   };
   #endif
 
-
+  #if defined(__GNUC__)
   template<class NativeComplexType, class Allocator_t >
   class fftw_backend
   {
   public:
     using value_type     = NativeComplexType;
     using allocator_type = Allocator_t;
-  
+
   private:
     using real_value_type    = typename NativeComplexType::value_type;
     using plan_type          = typename detail::fftw_traits_c_interface<real_value_type>::plan_type;
@@ -383,7 +388,9 @@
     plan_type   my_forward_unaligned_plan;
     plan_type   my_backward_unaligned_plan;
   };
-  
+  #endif
+
+  #if defined(__GNUC__)
   template<class T, class Allocator_t >
   class fftw_rfft_backend
   {
@@ -689,17 +696,20 @@
     //plan_type   my_r2c_unaligned_plan;
     //plan_type   my_c2r_unaligned_plan;
   };
+  #endif
 
   } // namespace detail
-  
+
+  #if defined(__GNUC__)
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using fftw_dft = detail::complex_dft<detail::fftw_backend,RingType,Allocator_t>;
   
   template<class T = double, class Allocator_t = std::allocator<T> >
   using fftw_rfft = detail::real_dft<detail::fftw_rfft_backend,T,Allocator_t>;
-  
+
   using fftw_transform = transform< fftw_dft<> >;
-  
+  #endif
+
   } } } // namespace boost::math::fft
 
 #endif // BOOST_MATH_FFT_FFTWBACKEND_HPP

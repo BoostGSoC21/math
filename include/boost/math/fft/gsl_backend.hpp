@@ -9,21 +9,26 @@
 #ifndef BOOST_MATH_FFT_GSLBACKEND_HPP
 #define BOOST_MATH_FFT_GSLBACKEND_HPP
 
+#include <complex>
+
+#if defined(__GNUC__)
 #include <gsl/gsl_fft_complex.h>
 #include <gsl/gsl_fft_real.h>
 #include <gsl/gsl_fft_halfcomplex.h>
-#include <complex>
+#endif
+
 #include <boost/math/fft/dft_api.hpp>
 
 namespace boost { namespace math { 
 namespace fft { namespace detail {
-    
+
+    #if defined(__GNUC__)
     template<class T, class A>
     class gsl_backend;
-    
+
     template<class T, class A>
     class gsl_rfft_backend;
-    
+
     template<class Allocator_t>
     class gsl_backend< std::complex<double>, Allocator_t >
     {
@@ -335,17 +340,19 @@ namespace fft { namespace detail {
         halfcomplex_to_real(tmp.data(),out);
       }
     };
-} // namespace detail    
-  
+    #endif
+  } // namespace detail    
+
+  #if defined(__GNUC__)
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using gsl_dft = detail::complex_dft<detail::gsl_backend,RingType,Allocator_t>;
-  
+
   template<class T = double, class Allocator_t = std::allocator<T> >
   using gsl_rfft = detail::real_dft<detail::gsl_rfft_backend,T,Allocator_t>;
-  
+
   using gsl_transform = transform< gsl_dft<> >;
-  
-    
+  #endif
+
 } // namespace fft
 } // namespace math
 } // namespace boost
