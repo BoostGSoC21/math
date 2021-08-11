@@ -15,6 +15,7 @@
   #include <boost/math/fft/multiprecision_complex.hpp>
 
   #include <boost/math/fft/algorithms.hpp>
+  #include <boost/math/fft/real_algorithms.hpp>
   #include <boost/math/fft/dft_api.hpp>
 
   namespace boost { namespace math {  namespace fft { 
@@ -138,10 +139,100 @@
     std::size_t my_size{};
   };
   
+  
+  template<class T, class allocator_t = std::allocator<T> >
+  class bsl_rfft_backend
+  {
+  public:
+    using value_type     = T;
+    using allocator_type = allocator_t;
+    
+    // the provided root of unity is used instead of exp(-i 2 pi/n)
+    constexpr bsl_rfft_backend(std::size_t n, const allocator_type& in_alloc = allocator_type{}):
+        alloc{in_alloc},
+        my_size{n}
+    { 
+    }
+
+    ~bsl_rfft_backend()
+    {
+    }
+    
+    void resize(std::size_t new_size)
+    {
+      my_size = new_size;
+    }
+    
+    constexpr std::size_t size() const { return my_size; }
+    constexpr std::size_t unique_complex_size() const { return my_size/2 + 1;}
+
+    void real_to_halfcomplex(const value_type* in, value_type* out) const
+    {
+      const long N = static_cast<long>(size());
+      // select the implementation according to the DFT size
+      switch(N)
+      {
+        case 0:
+          return;
+        case 1:
+          out[0]=in[0];
+          return;
+        case 2:
+          detail::real_dft_2(in,out,1);
+          return;
+      }
+      if( detail::is_power2(N))
+      {
+        detail::real_dft_power2(in,in+N,out,1);
+      }else
+      {
+        detail::real_dft_composite(in,in+N,out,1,alloc);
+      }
+      //if(detail::is_prime(N))
+      //{
+      //  detail::real_dft_prime_rader(in,in+N,out,sign,alloc);
+      //}
+    }
+    void halfcomplex_to_real(const value_type* in, value_type* out) const
+    {
+      const long N = static_cast<long>(size());
+      // select the implementation according to the DFT size
+      switch(N)
+      {
+        case 0:
+          return;
+        case 1:
+          out[0]=in[0];
+          return;
+        case 2:
+          detail::real_inverse_dft_2(in,out,1);
+          return;
+      }
+      if( detail::is_power2(N))
+      { 
+        detail::real_inverse_dft_power2(in,in+N,out,1);
+      }else  
+      {
+        detail::real_inverse_dft_composite(in,in+N,out,1,alloc);
+      }
+      //if(detail::is_prime(N))
+      //{
+      //  detail::real_inverse_dft_prime_rader(in,in+N,out,sign,alloc);
+      //}
+    }
+
+  private:
+    allocator_type alloc;
+    std::size_t my_size{};
+  };
+  
   } // namespace detail
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using bsl_dft = detail::complex_dft<detail::bsl_backend,RingType,Allocator_t>;
+  
+  template<class T = double, class Allocator_t = std::allocator<T> >
+  using bsl_rfft = detail::real_dft<detail::bsl_rfft_backend,T,Allocator_t>;
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using bsl_algebraic_dft = detail::algebraic_dft<detail::bsl_backend,RingType,Allocator_t>;
