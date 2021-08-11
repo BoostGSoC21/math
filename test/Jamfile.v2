@@ -1485,6 +1485,7 @@ test-suite fft_all :
 ;
 
 test-suite fft_bsl_msvc :
-   [ run fft_compile.cpp   : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
-   [ run fft_allocator.cpp : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
+   [ run fft_compile.cpp                                              : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
+   [ run fft_allocator.cpp                                            : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
+   [ run fft_pmr_allocator.cpp ../../container/build//boost_container : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
 ;
