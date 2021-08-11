@@ -1483,3 +1483,7 @@ test-suite fft :
 test-suite fft_all :
    [ run fft_auxiliary_functions.cpp ../tools//mpfr ../tools//gmp                                                                                                           : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ] : fft_auxiliary_functions_all ]
 ;
+
+test-suite fft_bsl_msvc :
+   [ run fft_compile.cpp : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
+;

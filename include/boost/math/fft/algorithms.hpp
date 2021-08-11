@@ -204,12 +204,14 @@
   {
     using allocator_type = allocator_t;
     const long my_n = static_cast<long>(std::distance(in_first,in_last));
-    
-    std::vector<complex_value_type,allocator_type> A(my_n-1,alloc),W(my_n-1,alloc),B(my_n-1,alloc);
-    
+
+    std::vector<complex_value_type,allocator_type> A(my_n-1,complex_value_type(),alloc);
+    std::vector<complex_value_type,allocator_type> W(my_n-1,complex_value_type(),alloc);
+    std::vector<complex_value_type,allocator_type> B(my_n-1,complex_value_type(),alloc);
+
     const long g = primitive_root(my_n);
     const long g_inv = power_mod(g,my_n-2,my_n);
-    
+
     for(long i=0;i<my_n-1;++i)
     {
       W[i] = complex_root_of_unity<complex_value_type>(my_n,sign*power_mod(g_inv,i,my_n));
@@ -386,8 +388,9 @@
       int p = prime_factors[ip];
       long len_old = len;
       len *= p;
-      
-      std::vector<ComplexType,allocator_type> tmp(p,alloc);
+
+      std::vector<ComplexType,allocator_type> tmp(p,ComplexType(),alloc);
+
       for (long i = 0; i < n; i += len)
       {
         //std::cout << "    i = " << i << "\n";
@@ -627,11 +630,13 @@
     
     const long N = std::distance(input1_begin,input1_end);
     const long N_extended = detail::is_power2(N) ? N : detail::upper_bound_power2(2*N-1);
-    
-    std::vector<input_value_type, allocator_type> In1(N_extended,alloc),In2(N_extended,alloc),Out(N_extended,alloc);
-    
+
+    std::vector<input_value_type, allocator_type> In1(N_extended,input_value_type(),alloc);
+    std::vector<input_value_type, allocator_type> In2(N_extended,input_value_type(),alloc);
+    std::vector<input_value_type, allocator_type> Out(N_extended,input_value_type(),alloc);
+
     std::copy(input1_begin,input1_end,In1.begin());
-    
+
     InputIterator2 input2_end{input2_begin};
     std::advance(input2_end,N);
     std::copy(input2_begin,input2_end,In2.begin());
