@@ -369,10 +369,20 @@
     
     std::reverse(prime_factors.begin(), prime_factors.begin()+nfactors);
     
+    //auto show = [&] (const ComplexType* beg, const ComplexType* end)
+    //{
+    //  for(;beg!=end;++beg)
+    //  {
+    //    std::cout << *beg << ", ";
+    //  }
+    //  std::cout << "\n";
+    //};
+    
     // butterfly pattern
     long len = 1;
     for (int ip=0;ip<nfactors;++ip)
     {
+      //std::cout << "pass " << ip << "\n";
       int p = prime_factors[ip];
       long len_old = len;
       len *= p;
@@ -380,6 +390,7 @@
       std::vector<ComplexType,allocator_type> tmp(p,alloc);
       for (long i = 0; i < n; i += len)
       {
+        //std::cout << "    i = " << i << "\n";
         for(long k=0;k<len_old;++k)
         {
           for(long j=0;j<p;++j)
@@ -399,6 +410,7 @@
           for(long j=0;j<p;++j)
             out[i+ j*len_old + k] = tmp[j];
         }
+        //show(out+i,out+i+len);
       }
     }
   }
@@ -489,8 +501,59 @@
     }
   }
   
+  template <class T>
+  void complex_dft_power2(const T *in_first, const T *in_last, T* out, int sign)
+  {
+    /*
+      Cooley-Tukey mapping, in-place Decimation in Time 
+    */
+    const long ptrdiff = static_cast<long>(std::distance(in_first,in_last));
+    if(ptrdiff <=0 )
+      return;
+    const long n = lower_bound_power2(ptrdiff);
+    
+    if(in_first!=out)
+      std::copy(in_first,in_last,out);
+    
+    if (n == 1)
+        return;
+
+
+    // Gold-Rader bit-reversal algorithm.
+    for(int i=0,j=0;i<n-1;++i)
+    { 
+      if(i<j)
+        std::swap(out[i],out[j]);
+      for(int k=n>>1;!( (j^=k)&k );k>>=1);
+    }
+    
+    
+    for (int len = 2, k = 1; len <= n; len <<= 1, ++k)
+    {
+      for (int i = 0; i < n; i += len)
+      {
+        {
+          int j=0;
+          T* u = out + i + j, *v = out + i + j + len / 2;
+          T Bu = *u, Bv = *v;
+          *u = Bu + Bv;
+          *v = Bu - Bv;
+        }
+        for (int j = 1; j < len / 2; ++j)
+        {
+          T cs{complex_root_of_unity<T>(1<<k,j*sign)};
+          
+          T* u = out + i + j, *v = out + i + j + len / 2;
+          T Bu = *u, Bv = *v * cs;
+          *u = Bu + Bv;
+          *v = Bu - Bv;
+        }
+      }
+    }
+  }
+  
   template<class complex_value_type>
-  void complex_dft_power2(
+  void complex_dft_power2_dif(
     const complex_value_type *in_first, 
     const complex_value_type *in_last, 
     complex_value_type* out, 

@@ -174,6 +174,34 @@ namespace fft { namespace detail {
       gsl_fft_halfcomplex_wavetable *halfcomplex_wtable;
       gsl_fft_real_workspace        *real_wspace;
       
+      void pack_halfcomplex(real_value_type* out) const
+      // precondition:
+      // -> size(out) >= N
+      {
+        const std::size_t N = size();
+        vector_t<real_value_type> tmp(out,out+N);
+        out[0]=tmp[0];
+        for(unsigned int i=1,j=1;j<N;++i,j+=2)
+        {
+          out[j] = tmp[i];
+          if(j+1<N)
+            out[j+1] = -tmp[N-i];
+        }
+      }
+      void unpack_halfcomplex(real_value_type* out) const
+      // precondition:
+      // -> size(out) >= N
+      {
+        const std::size_t N = size();
+        vector_t<real_value_type> tmp(out,out+N);
+        out[0]=tmp[0];
+        for(unsigned int i=1,j=1;j<N;++i,j+=2)
+        {
+          out[i] = tmp[j];
+          if(j+1<N)
+            out[N-i] = -tmp[j+1];
+        }
+      }
       template<plan_type p>
       void execute(const real_value_type* in, 
                    real_value_type* out,
@@ -189,6 +217,7 @@ namespace fft { namespace detail {
         }
         gsl_fft_real_transform(
           out,1, N, real_wtable, real_wspace);
+        unpack_halfcomplex(out);
       }
       template<plan_type p>
       void execute(const real_value_type* in, 
@@ -203,8 +232,13 @@ namespace fft { namespace detail {
           // undefined-behavior
           std::copy(in,in+N,out);
         }
+        pack_halfcomplex(out);
         gsl_fft_halfcomplex_transform(
           out,1, N, halfcomplex_wtable, real_wspace);
+        
+        const real_value_type inv_N = real_value_type{1.0}/N;
+        for(unsigned int i=0;i<N;++i)
+          out[i] *= inv_N;
       }
       
       void free()

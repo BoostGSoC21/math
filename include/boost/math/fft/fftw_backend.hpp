@@ -574,28 +574,14 @@
     // -> size(out) >= N
     {
       const std::size_t N = size();
-      vector_t<real_value_type> tmp(out,out+N);
-      out[0]=tmp[0];
-      for(unsigned int i=1,j=1;j<N;++i,j+=2)
-      {
-        out[j] = tmp[i];
-        if(j+1<N)
-          out[j+1] = tmp[N-i];
-      }
+      for(unsigned int i=1,j=N-1;i<j;++i,--j)
+        out[j] = -out[j];
     }
     void unpack_halfcomplex(real_value_type* out) const
     // precondition:
     // -> size(out) >= N
     {
-      const std::size_t N = size();
-      vector_t<real_value_type> tmp(out,out+N);
-      out[0]=tmp[0];
-      for(unsigned int i=1,j=1;j<N;++i,j+=2)
-      {
-        out[i] = tmp[j];
-        if(j+1<N)
-          out[N-i] = tmp[j+1];
-      }
+      pack_halfcomplex(out);  
     }
 
   public:
@@ -638,6 +624,11 @@
       std::copy(in,in+size(),out);
       unpack_halfcomplex(out);
       execute(my_hc2r_plan,my_hc2r_unaligned_plan,out,out);
+      
+      const std::size_t N = size();
+      const real_value_type inv_N = real_value_type{1.0}/N;
+      for(unsigned int i=0;i<N;++i)
+        out[i] *= inv_N;
     }
     template<class Complex>
     void real_to_complex(const real_value_type* in, Complex *out)const
