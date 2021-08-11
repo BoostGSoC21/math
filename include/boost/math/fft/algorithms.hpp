@@ -204,12 +204,14 @@
   {
     using allocator_type = allocator_t;
     const long my_n = static_cast<long>(std::distance(in_first,in_last));
-    
-    std::vector<complex_value_type,allocator_type> A(my_n-1,alloc),W(my_n-1,alloc),B(my_n-1,alloc);
-    
+
+    std::vector<complex_value_type,allocator_type> A(my_n-1,complex_value_type(),alloc);
+    std::vector<complex_value_type,allocator_type> W(my_n-1,complex_value_type(),alloc);
+    std::vector<complex_value_type,allocator_type> B(my_n-1,complex_value_type(),alloc);
+
     const long g = primitive_root(my_n);
     const long g_inv = power_mod(g,my_n-2,my_n);
-    
+
     for(long i=0;i<my_n-1;++i)
     {
       W[i] = complex_root_of_unity<complex_value_type>(my_n,sign*power_mod(g_inv,i,my_n));
