@@ -19,8 +19,10 @@
 #include <boost/multiprecision/complex128.hpp>
 #endif
 
+#if defined(__GNUC__)
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
+#endif
 #include <boost/math/fft/bsl_backend.hpp>
 #include <boost/core/demangle.hpp>
 #include <iostream>
@@ -48,6 +50,7 @@ void test_bsl() {
     print(B);
 }
 
+#if defined(__GNUC__)
 template<class Complex>
 void test_fftw() {
     std::cout << "FFTW engine with " << boost::core::demangle(typeid(Complex).name()) << "\n";
@@ -71,6 +74,7 @@ void test_gsl() {
     boost::math::fft::transform<boost::math::fft::gsl_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
+#endif
 
 int main()
 {
@@ -88,14 +92,18 @@ int main()
     test_bsl<                               boost::multiprecision::mpc_complex_50     >();
     test_bsl<boost::multiprecision::complex<boost::multiprecision::mpfr_float_50     >>(); // same thing.
 
+#if defined(__GNUC__)
     test_fftw<std::complex<float>>();
     test_fftw<std::complex<double>>();
     test_fftw<std::complex<long double>>();
+#endif
 #ifdef BOOST_MATH_USE_FLOAT128
     test_fftw<boost::multiprecision::complex128>();
 #endif
 
+#if defined(__GNUC__)
     test_gsl<std::complex<double>>();
+#endif
     return 0;
 }
 

@@ -1499,4 +1499,7 @@ test-suite fft_bsl_msvc :
 # This is fftw, gsl only, we have to skip it:
 #  [ run ../example/fft_ex02.cpp                                      : <include>../../multiprecision/include : : release : fft_example_02_msvc ]
    [ run ../example/fft_ex03.cpp                                      : <include>../../multiprecision/include : : release : fft_example_03_msvc ]
+# This is fftw, gsl only, we have to skip it:
+#  [ run ../example/fft_ex04.cpp                                      : <include>../../multiprecision/include : : release : fft_example_04_msvc ]
+   [ run ../example/fft_ex05.cpp                                      : <include>../../multiprecision/include : : release : fft_example_05_msvc ]
 ;
