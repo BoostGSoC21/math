@@ -1491,4 +1491,5 @@ test-suite fft_bsl_msvc :
 #  [ run fft_correctedness.cpp ../../container/build//boost_container : <include>../../multiprecision/include : : release : fft_correctedness_bsl_msvc ]
    [ run fft_iterators.cpp                                            : <include>../../multiprecision/include : : release : fft_iterators_bsl_msvc ]
    [ run fft_non-complex.cpp                                          : <include>../../multiprecision/include : : release : fft_non-complex_msvc ]
+   [ run fft_auxiliary_functions.cpp                                  : <include>../../multiprecision/include : : release : fft_auxiliary_functions_msvc ]
 ;
