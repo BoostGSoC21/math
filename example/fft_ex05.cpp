@@ -89,8 +89,10 @@ int main()
     test_bsl<boost::multiprecision::complex<boost::multiprecision::cpp_bin_float_50  >>(); // same thing.
     test_bsl<                               boost::multiprecision::cpp_complex_quad   >();
     test_bsl<boost::multiprecision::complex<boost::multiprecision::cpp_bin_float_quad>>(); // same thing.
+#if defined(__GNUC__)
     test_bsl<                               boost::multiprecision::mpc_complex_50     >();
     test_bsl<boost::multiprecision::complex<boost::multiprecision::mpfr_float_50     >>(); // same thing.
+#endif
 
 #if defined(__GNUC__)
     test_fftw<std::complex<float>>();
