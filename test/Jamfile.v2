@@ -1492,4 +1492,7 @@ test-suite fft_bsl_msvc :
    [ run fft_iterators.cpp                                            : <include>../../multiprecision/include : : release : fft_iterators_bsl_msvc ]
    [ run fft_non-complex.cpp                                          : <include>../../multiprecision/include : : release : fft_non-complex_msvc ]
    [ run fft_auxiliary_functions.cpp                                  : <include>../../multiprecision/include : : release : fft_auxiliary_functions_msvc ]
+# This is fftw onlyu test, we have to skip it:
+#  [ run fft_alignment.cpp                                            : <include>../../multiprecision/include : : release : fft_alignment_msvc ]
+   [ run fft_real_to_complex.cpp                                      : <include>../../multiprecision/include : : release : fft_real_to_complex_msvc ]
 ;
