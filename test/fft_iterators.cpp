@@ -1,7 +1,9 @@
 #include "math_unit_test.hpp"
 #include <boost/math/fft/bsl_backend.hpp>
+#if defined(__GNUC__)
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
+#endif
 #include <boost/math/constants/constants.hpp>
 
 #include <algorithm>
@@ -91,11 +93,13 @@ void test_inverse(int N, int tolerance)
   }
 }
 
+#if defined(__GNUC__)
 template<class T>
 using complex_fftw_dft = fftw_dft< boost::multiprecision::complex<T>  >;
 
 template<class T>
 using complex_gsl_dft = gsl_dft< boost::multiprecision::complex<T>  >;
+#endif
 
 template<class T>
 using complex_bsl_dft = bsl_dft< boost::multiprecision::complex<T>  >;
@@ -104,12 +108,14 @@ int main()
 {
   for(int i=1;i<=(1<<12); i*=2)
   {
+#if defined(__GNUC__)
     test_inverse<complex_fftw_dft<float>>(i,1);
     test_inverse<complex_fftw_dft<double>>(i,1);
     test_inverse<complex_fftw_dft<long double>>(i,1);
-    
+
     test_inverse<complex_gsl_dft<double>>(i,1);
-    
+#endif
+
     test_inverse<complex_bsl_dft<float>>(i,1);
     test_inverse<complex_bsl_dft<double>>(i,1);
     test_inverse<complex_bsl_dft<long double>>(i,1);
