@@ -98,7 +98,7 @@
   }
   
   template <class T>
-  void real_dft_power2(const T *in_first, const T *in_last, T* out, int sign)
+  void real_dft_power2(const T *in_first, const T *in_last, T* out, int/*sign*/)
   {
     /*
       Cooley-Tukey mapping, in-place Decimation in Time 
@@ -135,8 +135,8 @@
         }
         for(int j=1;j < prev_len/2;++j)
         {
-          T cos{ complex_root_of_unity_real<T>(len,j*sign) }, 
-            sin{ complex_root_of_unity_imag<T>(len,j*sign) };
+          T cos{ complex_root_of_unity_real<T>(len,j) }, 
+            sin{ complex_root_of_unity_imag<T>(len,j) };
           
           T *ux = out + i + j, 
             *uy = out + i + len - j;
@@ -155,11 +155,19 @@
           *vx = prev_ux - cos * prev_vy - sin * prev_uy;
           *vy =-prev_vx + cos * prev_uy - sin * prev_vy;
         }
+        //if(prev_len>=2)
+        //{
+        //  const int j = prev_len/2;
+        //  T* u = out + i + j, *v = out + i + j + prev_len;
+        //  T Bu = *u, Bv = *v;
+        //  *u = Bu;
+        //  *v = Bv;
+        //}
       }
     }
   }
   template <class T>
-  void real_inverse_dft_power2(const T *in_first, const T *in_last, T* out, int sign)
+  void real_inverse_dft_power2(const T *in_first, const T *in_last, T* out, int /*sign*/)
   {
     /*
       Cooley-Tukey mapping, in-place Decimation in Time 
@@ -184,13 +192,13 @@
           // j=0;
           T* u = out + i, *v = out + i + prev_len;
           T Bu = *u, Bv = *v;
-          *u = (Bu + Bv)*0.5;
-          *v = (Bu - Bv)*0.5;
+          *u = Bu + Bv;
+          *v = Bu - Bv;
         }
         for(int j=1;j < prev_len/2;++j)
         {
-          T cos{ complex_root_of_unity_real<T>(len,j*sign) }, 
-            sin{ complex_root_of_unity_imag<T>(len,j*sign) };
+          T cos{ complex_root_of_unity_real<T>(len,-j) }, 
+            sin{ complex_root_of_unity_imag<T>(len,-j) };
           
           T *ux = out + i + j, 
             *uy = out + i + len - j;
@@ -204,15 +212,23 @@
           T prev_vx = *vx, 
             prev_vy = *vy;
           
-          T sum_x = (prev_ux + prev_vx) * 0.5,
-            dif_x = (prev_ux - prev_vx) * 0.5,
-            sum_y = (prev_uy + prev_vy) * 0.5,
-            dif_y = (prev_uy - prev_vy) * 0.5;
+          T sum_x = prev_ux + prev_vx,
+            dif_x = prev_ux - prev_vx,
+            sum_y = prev_uy + prev_vy,
+            dif_y = prev_uy - prev_vy;
           
           *ux = sum_x;
           *vx = dif_y;
-          *uy = cos * sum_y + sin*dif_x;
-          *vy = cos * dif_x - sin*sum_y;
+          *uy = cos * sum_y - sin*dif_x;
+          *vy = cos * dif_x + sin*sum_y;
+        }
+        if(prev_len>=2)
+        {
+          const int j = prev_len/2;
+          T* u = out + i + j, *v = out + i + j + prev_len;
+          T Bu = *u, Bv = *v;
+          *u = Bu + Bu;
+          *v = Bv + Bv;
         }
       }
     }
@@ -224,8 +240,6 @@
         std::swap(out[i],out[j]);
       for(int k=n>>1;!( (j^=k)&k );k>>=1);
     }
-    
-    for(int i=0;i<n;++i) out[i] *= n;
   }
   
   template<class T>
