@@ -1485,5 +1485,21 @@ test-suite fft_all :
 ;
 
 test-suite fft_bsl_msvc :
-   [ run fft_compile.cpp : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc ]
+   [ run fft_compile.cpp                                              : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc       ]
+   [ run fft_allocator.cpp                                            : <include>../../multiprecision/include : : release : fft_allocator_bsl_msvc     ]
+   [ run fft_pmr_allocator.cpp ../../container/build//boost_container : <include>../../multiprecision/include : : release : fft_pmr_allocator_bsl_msvc ]
+#  [ run fft_correctedness.cpp ../../container/build//boost_container : <include>../../multiprecision/include : : release : fft_correctedness_bsl_msvc ]
+   [ run fft_iterators.cpp                                            : <include>../../multiprecision/include : : release : fft_iterators_bsl_msvc ]
+   [ run fft_non-complex.cpp                                          : <include>../../multiprecision/include : : release : fft_non-complex_msvc ]
+   [ run fft_auxiliary_functions.cpp                                  : <include>../../multiprecision/include : : release : fft_auxiliary_functions_msvc ]
+# This is fftw only test, we have to skip it:
+#  [ run fft_alignment.cpp                                            : <include>../../multiprecision/include : : release : fft_alignment_msvc ]
+   [ run fft_real_to_complex.cpp                                      : <include>../../multiprecision/include : : release : fft_real_to_complex_msvc ]
+   [ run ../example/fft_ex01.cpp                                      : <include>../../multiprecision/include : : release : fft_example_01_msvc ]
+# This is fftw, gsl only, we have to skip it:
+#  [ run ../example/fft_ex02.cpp                                      : <include>../../multiprecision/include : : release : fft_example_02_msvc ]
+   [ run ../example/fft_ex03.cpp                                      : <include>../../multiprecision/include : : release : fft_example_03_msvc ]
+# This is fftw, gsl only, we have to skip it:
+#  [ run ../example/fft_ex04.cpp                                      : <include>../../multiprecision/include : : release : fft_example_04_msvc ]
+   [ run ../example/fft_ex05.cpp                                      : <include>../../multiprecision/include : : release : fft_example_05_msvc ]
 ;

@@ -64,7 +64,9 @@ void test_inverse(int N, int tolerance)
   using real_value_type = typename Complex::value_type;
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
   {
-    std::vector<Complex,allocator_type> A(N,&pool),B(N,&pool),C(N,&pool);
+    std::vector<Complex,allocator_type> A(N,Complex(),&pool);
+    std::vector<Complex,allocator_type> B(N,Complex(),&pool);
+    std::vector<Complex,allocator_type> C(N,Complex(),&pool);
     for(auto& x: A)
     {
       x.real( 1. );

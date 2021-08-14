@@ -420,7 +420,7 @@
       long len_old = len;
       len *= p;
       
-      std::vector<ComplexType,ComplexAllocator> tmp(p,alloc);
+      std::vector<ComplexType,ComplexAllocator> tmp(p,ComplexType(),alloc);
       //std::cout << "pass " << ip << "\n";
       for (long i = 0; i < n; i += len)
       {
@@ -536,7 +536,7 @@
       int p = prime_factors[ip];
       prev_len = len/p;
       
-      std::vector<ComplexType,ComplexAllocator> tmp(p,alloc);
+      std::vector<ComplexType,ComplexAllocator> tmp(p,ComplexType(),alloc);
       for (long i = 0; i < n; i += len)
       {
         for(long k=0;2*k<=prev_len;++k)

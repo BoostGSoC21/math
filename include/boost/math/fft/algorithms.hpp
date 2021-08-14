@@ -287,7 +287,7 @@
       T w_len = power(e, n / len);
       T w_p = power(e,n/p);
       
-      std::vector<T,allocator_type> tmp(p,alloc);
+      std::vector<T,allocator_type> tmp(p,T(),alloc);
       for (long i = 0; i < n; i += len)
       {
         for(long k=0;k<len_old;++k)
