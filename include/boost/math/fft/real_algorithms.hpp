@@ -32,8 +32,8 @@
     T* out, int)
   {
     T o1 = in[0]+in[1], o2 = in[0]-in[1] ;
-    out[0] = o1*.5;
-    out[1] = o2*.5;
+    out[0] = o1;
+    out[1] = o2;
   }
   
   template<class RealType>
@@ -98,7 +98,7 @@
   }
   
   template <class T>
-  void real_dft_power2(const T *in_first, const T *in_last, T* out, int sign)
+  void real_dft_power2(const T *in_first, const T *in_last, T* out, int/*sign*/)
   {
     /*
       Cooley-Tukey mapping, in-place Decimation in Time 
@@ -135,8 +135,8 @@
         }
         for(int j=1;j < prev_len/2;++j)
         {
-          T cos{ complex_root_of_unity_real<T>(len,j*sign) }, 
-            sin{ complex_root_of_unity_imag<T>(len,j*sign) };
+          T cos{ complex_root_of_unity_real<T>(len,j) }, 
+            sin{ complex_root_of_unity_imag<T>(len,j) };
           
           T *ux = out + i + j, 
             *uy = out + i + len - j;
@@ -155,11 +155,19 @@
           *vx = prev_ux - cos * prev_vy - sin * prev_uy;
           *vy =-prev_vx + cos * prev_uy - sin * prev_vy;
         }
+        //if(prev_len>=2)
+        //{
+        //  const int j = prev_len/2;
+        //  T* u = out + i + j, *v = out + i + j + prev_len;
+        //  T Bu = *u, Bv = *v;
+        //  *u = Bu;
+        //  *v = Bv;
+        //}
       }
     }
   }
   template <class T>
-  void real_inverse_dft_power2(const T *in_first, const T *in_last, T* out, int sign)
+  void real_inverse_dft_power2(const T *in_first, const T *in_last, T* out, int /*sign*/)
   {
     /*
       Cooley-Tukey mapping, in-place Decimation in Time 
@@ -184,13 +192,13 @@
           // j=0;
           T* u = out + i, *v = out + i + prev_len;
           T Bu = *u, Bv = *v;
-          *u = (Bu + Bv)*0.5;
-          *v = (Bu - Bv)*0.5;
+          *u = Bu + Bv;
+          *v = Bu - Bv;
         }
         for(int j=1;j < prev_len/2;++j)
         {
-          T cos{ complex_root_of_unity_real<T>(len,j*sign) }, 
-            sin{ complex_root_of_unity_imag<T>(len,j*sign) };
+          T cos{ complex_root_of_unity_real<T>(len,-j) }, 
+            sin{ complex_root_of_unity_imag<T>(len,-j) };
           
           T *ux = out + i + j, 
             *uy = out + i + len - j;
@@ -204,16 +212,23 @@
           T prev_vx = *vx, 
             prev_vy = *vy;
           
-          T sum_x = (prev_ux + prev_vx) * 0.5,
-            dif_x = (prev_ux - prev_vx) * 0.5,
-            sum_y = (prev_uy + prev_vy) * 0.5,
-            dif_y = (prev_uy - prev_vy) * 0.5;
-            
+          T sum_x = prev_ux + prev_vx,
+            dif_x = prev_ux - prev_vx,
+            sum_y = prev_uy + prev_vy,
+            dif_y = prev_uy - prev_vy;
+          
           *ux = sum_x;
           *vx = dif_y;
-          
-          *uy = cos * sum_y + sin*dif_x;
-          *vy = cos * dif_x - sin*sum_y;
+          *uy = cos * sum_y - sin*dif_x;
+          *vy = cos * dif_x + sin*sum_y;
+        }
+        if(prev_len>=2)
+        {
+          const int j = prev_len/2;
+          T* u = out + i + j, *v = out + i + j + prev_len;
+          T Bu = *u, Bv = *v;
+          *u = Bu + Bu;
+          *v = Bv + Bv;
         }
       }
     }
@@ -298,7 +313,6 @@
     if(N<=0)
       return;
     
-    T inv_N = 1. / N;
     {
       T sum_x{0.};
       for(long i=1,j=N-1;i<j;++i,--j)
@@ -306,7 +320,7 @@
         sum_x += in_first[i];
       }
       // if(i<j) // i==j never happens for odd sizes
-      out[0] = inv_N * ( 2*sum_x + in_first[0]);
+      out[0] = ( 2*sum_x + in_first[0]);
     } 
     for(long l=1;l<N; ++l)
     {
@@ -317,7 +331,7 @@
         sum_y += in_first[j] * complex_root_of_unity_imag<T>(N,i*l*sign);
       }
       // if(i<j) // i==j never happens for odd sizes
-      out[l] = inv_N *(2*sum_x - 2*sum_y + in_first[0]);
+      out[l] = (2*sum_x - 2*sum_y + in_first[0]);
     }
   }
   
@@ -550,8 +564,6 @@
           {
             complex_dft_prime_rader<ComplexType,ComplexAllocator>(tmp.data(),tmp.data()+p,tmp.data(),-1,alloc);
           }
-          const T inv_p = T{1.0}/p;
-          for(auto& c: tmp) c  *= inv_p;
           
           if(k==0)
           {
