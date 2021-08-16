@@ -272,9 +272,7 @@
   template< template<class ... Args> class BackendType, class T, class allocator_t >
   class complex_dft : 
         public BackendType<T,allocator_t> , 
-        public symmetric_executor<T,allocator_t>,
-        public asymmetric_executor<typename T::value_type,T,allocator_t>,
-        public asymmetric_executor<T,typename T::value_type,allocator_t>
+        public symmetric_executor<T,allocator_t>
   {
     public:
     using complex_type    = T;
@@ -285,8 +283,6 @@
     
     using backend         = BackendType<complex_type,allocator_type>;
     using executor_C2C    = symmetric_executor<complex_type,allocator_type>;
-    using executor_R2C    = asymmetric_executor<real_type,complex_type,allocator_type>;
-    using executor_C2R    = asymmetric_executor<complex_type,real_type,allocator_type>;
     
     template<class U, class A>
     using other = complex_dft<BackendType,U,A>;
@@ -302,8 +298,6 @@
     constexpr complex_dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
       : backend(n,in_alloc), 
         executor_C2C(in_alloc), 
-        executor_R2C(in_alloc), 
-        executor_C2R(in_alloc), 
         alloc{in_alloc} { }
 
     template<typename InputIteratorType,
