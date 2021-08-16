@@ -332,9 +332,7 @@
   template< template<class ... Args> class BackendType, class T, class allocator_t >
   class real_dft : 
         public BackendType<T,allocator_t> , 
-        public symmetric_executor<T,allocator_t>,
-        public asymmetric_executor<T,std::complex<T>,allocator_t>,
-        public asymmetric_executor<std::complex<T>,T,allocator_t>
+        public symmetric_executor<T,allocator_t>
   {
     public:
     using value_type      = T;
@@ -344,8 +342,6 @@
     
     using backend         = BackendType<real_type,allocator_type>;
     using executor_halfcomplex = symmetric_executor<real_type,allocator_type>;
-    using executor_r2c = asymmetric_executor<real_type,complex_type,allocator_type>;
-    using executor_c2r = asymmetric_executor<complex_type,real_type,allocator_type>;
     
     template<class U, class A>
     using other = real_dft<BackendType,U,A>;
@@ -353,6 +349,57 @@
     private:
     allocator_type alloc;
     
+    template<typename InputIteratorType>
+    void encode_halfcomplex(
+      InputIteratorType in_first, InputIteratorType in_last,
+      real_type* out) const
+    {
+      unsigned int i=0,j=size();
+      {
+        *out = in_first->real();
+        ++in_first, ++out, ++i; --j;
+      }
+      while(i<=j)
+      {
+        *out = in_first->real();
+        ++in_first, ++out, ++i, --j;
+      }
+      while(j>0)
+      {
+        *out = in_first->imag();
+        ++in_first, ++out, ++i, --j;
+      }
+    }
+    template<typename OutputIteratorType>
+    void decode_halfcomplex(
+      const real_type *in_first, const real_type* in_last, 
+      OutputIteratorType out) const
+    {
+      using complex_type = typename std::iterator_traits<OutputIteratorType>::value_type;
+      
+      real_type const * const zeroth = in_first;
+      
+      {
+        *out = *in_first;
+        ++out, ++in_first; --in_last;
+      }
+      while(in_first < in_last)
+      {
+        *out = complex_type{*in_first, - *in_last};
+        ++out, ++in_first; --in_last;
+      }
+      if(in_first == in_last)
+      {
+        *out = *in_first;
+        ++out, ++in_first; --in_last;
+      }
+      while(in_last>zeroth)
+      {
+        *out = complex_type{*in_last,*in_first};
+        ++out, ++in_first; --in_last;
+      }
+   } 
+   
   public:
     using backend::size;
     using backend::unique_complex_size;
@@ -398,11 +445,16 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_r2c::execute(in_first,in_last,out,
-        [this](const real_type* i, complex_type* o)
+      
+      std::vector<real_type,allocator_t> hc(size(),alloc);
+      
+      executor_halfcomplex::execute(in_first,in_last,hc.data(),
+        [this](const real_type* i, real_type* o)
         {
-          backend::template real_to_complex<complex_type>(i,o);
+          backend::real_to_halfcomplex(i,o);
         });
+      
+      decode_halfcomplex(hc.data(),hc.data()+hc.size(),out);
     }
 
     template<typename InputIteratorType,
@@ -412,10 +464,15 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_c2r::execute(in_first,in_last,out,
-        [this](const complex_type* i, real_type* o)
+      
+      std::vector<real_type,allocator_t> hc(size(),alloc);
+      
+      encode_halfcomplex(in_first,in_last,hc.data());
+      
+      executor_halfcomplex::execute(hc.data(),hc.data()+hc.size(),out,
+        [this](const real_type* i, real_type* o)
         {
-          backend::template complex_to_real<complex_type>(i,o);
+          backend::halfcomplex_to_real(i,o);
         });
     }
     
