@@ -15,6 +15,7 @@ int global_error_count{0};
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <boost/container/pmr/global_resource.hpp>
+#include "fft_test_helpers.hpp"
 
 
 // Poison the call to global new and new[]
@@ -227,6 +228,45 @@ struct test_bsl_rdft_traits
   using plan_type = bsl_rdft< value_type, allocator_type >;
 };
 
+class Z337
+{
+public:
+  typedef int integer;
+  static constexpr integer mod{337};
+};
+
+void test_inverse_algebraic_fft()
+{
+  std::array<char,200> buf;
+  boost::container::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
+    
+  constexpr int N = 8;
+  using M_int = boost::math::fft::my_modulo_lib::mint<Z337>;
+  using mint_allocator = boost::container::pmr::polymorphic_allocator<M_int> ;
+  const M_int w{85};
+  const M_int inv_N{M_int{N}.inverse()};
+
+  std::vector<M_int,mint_allocator> A(N,M_int(),&pool);
+  std::iota(A.begin(),A.end(),1);
+  
+  std::vector<M_int,mint_allocator> FT_A(&pool),FT_FT_A(&pool);
+
+  boost::math::fft::bsl_algebraic_dft<M_int,mint_allocator> plan(N,w,&pool);
+  
+  plan.forward(A.cbegin(),A.cend(),std::back_inserter(FT_A));
+  plan.backward(FT_A.cbegin(),FT_A.cend(),std::back_inserter(FT_FT_A));
+
+  std::transform(FT_FT_A.begin(), FT_FT_A.end(), FT_FT_A.begin(),
+                 [&inv_N](M_int x) { return x * inv_N; });
+
+  int diff = 0;
+  for (size_t i = 0; i < A.size(); ++i)
+      diff += A[i] == FT_FT_A[i] ? 0 : 1;
+  if ( diff != 0 )
+      ++global_error_count;
+}
+
 int main()
 {
   new_is_on=false;
@@ -244,5 +284,6 @@ int main()
     test_inverse_real_complex< test_bsl_rdft_traits<double>>(i,32);
     test_inverse_real_complex< test_bsl_rdft_traits<long double>>(i,32);
   }
+  test_inverse_algebraic_fft();
   return global_error_count;
 }
