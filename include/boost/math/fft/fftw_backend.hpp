@@ -433,65 +433,6 @@
           reinterpret_cast<fftw_real_value_type*>(out)
         );
     }
-    //void execute_r2c(plan_type plan, plan_type unaligned_plan, const real_value_type* in, complex_value_type* out) const
-    //// precondition:
-    //// size(in)  >= size()
-    //// size(out) >= size()
-    //{
-    //  const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
-    //            reinterpret_cast<fftw_real_value_type*>(out));
-    //  
-    //  if(in!=out) // We have to copy, because fftw plan is forced to be in-place: from: nullptr, to: nullptr
-    //  {
-    //    std::memcpy(reinterpret_cast<void*>(out),
-    //                reinterpret_cast<void*>(in),
-    //                size()*sizeof(real_value_type));
-    //  }
-    //            
-    //  if(out_alignment==ref_alignment)
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_execute_r2c
-    //    (
-    //      plan,
-    //      reinterpret_cast<fftw_real_value_type*>(out),
-    //      reinterpret_cast<fftw_complex_value_type*>(out)
-    //    );
-    //  else
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_execute_r2c
-    //    (
-    //      unaligned_plan,
-    //      reinterpret_cast<fftw_real_value_type*>(out),
-    //      reinterpret_cast<fftw_complex_value_type*>(out)
-    //    );
-    //}
-    //void execute_c2r(plan_type plan, plan_type unaligned_plan, const complex_value_type* in, real_value_type* out) const
-    //// precondition:
-    //// size(in)  >= size()
-    //// size(out) >= size()
-    //{
-    //  const int out_alignment = detail::fftw_traits_c_interface<real_value_type>::alignment_of(
-    //            reinterpret_cast<fftw_real_value_type*>(out));
-    //  
-    //  vector_t<real_value_type> tmp(2*unique_complex_size());
-    //  std::memcpy(reinterpret_cast<void*>(tmp.data()),
-    //              reinterpret_cast<void*>(in),
-    //              tmp.size()*sizeof(real_value_type));
-    //            
-    //  if(out_alignment==ref_alignment)
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_execute_c2r
-    //    (
-    //      plan,
-    //      reinterpret_cast<fftw_complex_value_type*>(tmp.data()),
-    //      reinterpret_cast<fftw_real_value_type*>(tmp.data())
-    //    );
-    //  else
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_execute_c2r
-    //    (
-    //      unaligned_plan,
-    //      reinterpret_cast<fftw_complex_value_type*>(tmp.data()),
-    //      reinterpret_cast<fftw_real_value_type*>(tmp.data())
-    //    );
-    //  std::copy(tmp.begin(),tmp.begin()+size(),out);
-    //}
     
     void free()
     {
@@ -499,11 +440,6 @@
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_hc2r_plan);
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2hc_unaligned_plan);
       detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_hc2r_unaligned_plan);
-      
-      //detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2c_plan);
-      //detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_c2r_plan);
-      //detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_r2c_unaligned_plan);
-      //detail::fftw_traits_c_interface<real_value_type>::plan_destroy(my_c2r_unaligned_plan);
     }
     void alloc()
     {
@@ -543,38 +479,6 @@
           FFTW_HC2R,
           FFTW_ESTIMATE | FFTW_UNALIGNED
         );
-    //  my_r2c_plan = 
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_construct_r2c
-    //    (
-    //      size(), 
-    //      nullptr, 
-    //      nullptr, 
-    //      FFTW_ESTIMATE
-    //    );
-    //  my_c2r_plan =
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_construct_c2r
-    //    (
-    //      size(), 
-    //      nullptr, 
-    //      nullptr, 
-    //      FFTW_ESTIMATE
-    //    );
-    //  my_r2c_unaligned_plan = 
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_construct_r2c
-    //    (
-    //      size(), 
-    //      nullptr, 
-    //      nullptr, 
-    //      FFTW_ESTIMATE | FFTW_UNALIGNED
-    //    );
-    //  my_c2r_unaligned_plan =
-    //    detail::fftw_traits_c_interface<real_value_type>::plan_construct_c2r
-    //    (
-    //      size(), 
-    //      nullptr, 
-    //      nullptr, 
-    //      FFTW_ESTIMATE | FFTW_UNALIGNED
-    //    );
     }
     void pack_halfcomplex(real_value_type* out) const
     // precondition:
@@ -632,49 +536,6 @@
       unpack_halfcomplex(out);
       execute(my_hc2r_plan,my_hc2r_unaligned_plan,out,out);
     }
-    template<class Complex>
-    void real_to_complex(const real_value_type* in, Complex *out)const
-    // precondition:
-    // -> size(out)=N
-    {
-      const std::size_t N = size();
-      vector_t<real_value_type> tmp(N);
-      execute(my_r2hc_plan,my_r2hc_unaligned_plan,in,tmp.data());
-      {
-        out[0].real(tmp[0]);
-        out[0].imag(0);
-        int k=N/2;
-        out[k].real(tmp[k]);
-        out[k].imag(0);
-      }
-      for(unsigned int i=1,j=N-1;i<j;++i,--j)
-      {
-        out[i].real(tmp[i]);
-        out[i].imag(tmp[j]);
-        
-        out[j].real(tmp[i]);
-        out[j].imag(-tmp[j]);
-      }
-    }
-    template<class Complex>
-    void complex_to_real(const Complex* in, real_value_type* out) const
-    // precondition:
-    // -> size(out)=N
-    {
-      const std::size_t N = size();
-      vector_t<real_value_type> tmp(N);
-      {
-        tmp[0] = in[0].real();
-        int k = N/2;
-        tmp[k] = in[k].real();
-      }
-      for(unsigned int i=1,j=N-1;i<j;++i,--j)
-      {
-        tmp[i] = in[i].real();
-        tmp[j] = in[i].imag();
-      }
-      execute(my_hc2r_plan,my_hc2r_unaligned_plan,tmp.data(),out);
-    }
 
   private:
     std::size_t my_size;
@@ -685,11 +546,6 @@
     plan_type   my_hc2r_plan;
     plan_type   my_r2hc_unaligned_plan;
     plan_type   my_hc2r_unaligned_plan;
-    
-    //plan_type   my_r2c_plan;
-    //plan_type   my_c2r_plan;
-    //plan_type   my_r2c_unaligned_plan;
-    //plan_type   my_c2r_unaligned_plan;
   };
   #endif
 
