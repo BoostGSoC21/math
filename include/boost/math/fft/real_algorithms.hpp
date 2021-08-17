@@ -590,7 +590,7 @@
       }
     }
     
-    std::vector<T,allocator_type> tmp(out,out+n);
+    std::vector<T,allocator_type> tmp(out,out+n,alloc);
     // reorder
     for (long i = 0; i < n; ++i)
     {
