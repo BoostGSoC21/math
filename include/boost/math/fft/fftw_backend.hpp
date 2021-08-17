@@ -703,6 +703,7 @@
   using fftw_rfft = detail::real_dft<detail::fftw_rfft_backend,T,Allocator_t>;
 
   using fftw_transform = transform< fftw_dft<> >;
+  using fftw_real_transform = transform< fftw_rfft<> >;
   #endif
 
   } } } // namespace boost::math::fft

@@ -347,6 +347,7 @@ namespace fft { namespace detail {
   using gsl_rfft = detail::real_dft<detail::gsl_rfft_backend,T,Allocator_t>;
 
   using gsl_transform = transform< gsl_dft<> >;
+  using gsl_real_transform = transform< gsl_rfft<> >;
   #endif
 
 } // namespace fft
