@@ -21,6 +21,8 @@
 
 template<class Backend, int N >
 void test()
+// Try to provoke a seg. fault in FFTW by forwarding unaligned data to the
+// executor
 {
   using T = typename Backend::value_type;
   std::cout << "Testing: " << boost::core::demangle(typeid(T).name()) << "\n";
@@ -39,6 +41,8 @@ void test()
 }
 template<class Backend, int N >
 void test_real()
+// Try to provoke a seg. fault in FFTW by forwarding unaligned data to the
+// executor
 {
   using T = typename Backend::value_type;
   std::cout << "Testing: " << boost::core::demangle(typeid(T).name()) << "\n";
