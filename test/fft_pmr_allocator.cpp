@@ -11,11 +11,13 @@ int global_error_count{0};
 #include <cstdlib>
 #include <boost/math/fft/bsl_backend.hpp>
 #include <array>
+#include <numeric>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <boost/container/pmr/global_resource.hpp>
 
 
+// Poison the call to global new and new[]
 bool new_is_on{true};
 
 void * operator new(size_t size)
@@ -54,6 +56,7 @@ using namespace boost::math::fft;
 
 template<class Backend>
 void test_inverse(int N, int tolerance)
+// Try the execution of complex FFT
 {
   std::array<char,200000> buf;
   boost::container::pmr::monotonic_buffer_resource
@@ -102,13 +105,128 @@ void test_inverse(int N, int tolerance)
     // CHECK_MOLLIFIED_CLOSE(real_value_type{0.0},diff,tol);
   }
 }
+template<class Backend>
+void test_inverse_real(int N, int tolerance)
+// Try the execution of real-to-halfcomplex 
+{
+  std::array<char,200000> buf;
+  boost::container::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
+  
+  using allocator_type = typename Backend::allocator_type;
+  using real_value_type = typename Backend::value_type;
+  using plan_type = typename Backend::plan_type;
+  
+  const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
+  {
+    std::vector<real_value_type,allocator_type> A(N,real_value_type(),&pool);
+    std::vector<real_value_type,allocator_type> B(N,real_value_type(),&pool);
+    std::vector<real_value_type,allocator_type> C(N,real_value_type(),&pool);
+    
+    std::iota(A.begin(),A.end(),1);
+    
+    plan_type plan(N,&pool);
+    plan.real_to_halfcomplex(A.data(),A.data()+A.size(),B.data());
+    plan.halfcomplex_to_real(B.data(),B.data()+B.size(),C.data());
+    
+    const real_value_type inverse_N = real_value_type{1.0}/N;
+    for(auto &x : C)
+      x *= inverse_N;
+    
+    real_value_type diff{0.0};
+    
+    for(size_t i=0;i<A.size();++i)
+    {
+      using std::norm;
+      diff += norm(A[i]-C[i]);
+    }
+    using std::sqrt;
+    diff = sqrt(diff)*inverse_N;
+    using std::max;
+    using std::abs;
+    
+    const real_value_type expected = 0.0;
+    const real_value_type computed = diff;
+    
+    real_value_type denom = (max)(abs(expected), real_value_type(1));
+    real_value_type mollified_relative_error = abs(expected - computed)/denom;
+    if (mollified_relative_error > tol)
+        ++global_error_count;
+    // CHECK_MOLLIFIED_CLOSE(real_value_type{0.0},diff,tol);
+  }
+}
+template<class Backend>
+void test_inverse_real_complex(int N, int tolerance)
+// Try the execution of real-to-complex 
+{
+  std::array<char,200000> buf;
+  boost::container::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
+  
+  using allocator_type = typename Backend::allocator_type;
+  using Complex = typename Backend::Complex;
+  using complex_allocator_type = typename std::allocator_traits<allocator_type>::template rebind_alloc<Complex>;
+  using real_value_type = typename Backend::value_type;
+  using plan_type = typename Backend::plan_type;
+  
+  const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
+  {
+    std::vector<real_value_type,allocator_type> A(N,real_value_type(),&pool);
+    std::vector<Complex,complex_allocator_type> B(N,Complex(),&pool);
+    std::vector<real_value_type,allocator_type> C(N,real_value_type(),&pool);
+    
+    std::iota(A.begin(),A.end(),1);
+    
+    plan_type plan(N,&pool);
+    plan.real_to_complex(A.data(),A.data()+A.size(),B.data());
+    plan.complex_to_real(B.data(),B.data()+B.size(),C.data());
+    
+    const real_value_type inverse_N = real_value_type{1.0}/N;
+    for(auto &x : C)
+      x *= inverse_N;
+    
+    real_value_type diff{0.0};
+    
+    for(size_t i=0;i<A.size();++i)
+    {
+      using std::norm;
+      diff += norm(A[i]-C[i]);
+    }
+    using std::sqrt;
+    diff = sqrt(diff)*inverse_N;
+    using std::max;
+    using std::abs;
+    
+    const real_value_type expected = 0.0;
+    const real_value_type computed = diff;
+    
+    real_value_type denom = (max)(abs(expected), real_value_type(1));
+    real_value_type mollified_relative_error = abs(expected - computed)/denom;
+    if (mollified_relative_error > tol)
+        ++global_error_count;
+    // CHECK_MOLLIFIED_CLOSE(real_value_type{0.0},diff,tol);
+  }
+}
 
 template<class T>
 struct complex_bsl_dft
+// Since new and new[] is forbidend, we use boost's Polymorphic Memory Resource
+// to allocate internal buffers.
 {
   using Complex = boost::multiprecision::complex<T> ;
   using type = bsl_dft< Complex, boost::container::pmr::polymorphic_allocator<Complex> >;
 };
+template<class T>
+struct test_bsl_rdft_traits
+// Since new and new[] is forbidend, we use boost's Polymorphic Memory Resource
+// to allocate internal buffers.
+{
+  using value_type = T ;
+  using Complex = boost::multiprecision::complex<T>;
+  using allocator_type = boost::container::pmr::polymorphic_allocator<value_type>;
+  using plan_type = bsl_rdft< value_type, allocator_type >;
+};
+
 int main()
 {
   new_is_on=false;
@@ -117,6 +235,14 @@ int main()
     test_inverse<complex_bsl_dft<float>::type>(i,2);
     test_inverse<complex_bsl_dft<double>::type>(i,2);
     test_inverse<complex_bsl_dft<long double>::type>(i,2);
+    
+    test_inverse_real< test_bsl_rdft_traits<float>>(i,32);
+    test_inverse_real< test_bsl_rdft_traits<double>>(i,32);
+    test_inverse_real< test_bsl_rdft_traits<long double>>(i,32);
+    
+    test_inverse_real_complex< test_bsl_rdft_traits<float>>(i,32);
+    test_inverse_real_complex< test_bsl_rdft_traits<double>>(i,32);
+    test_inverse_real_complex< test_bsl_rdft_traits<long double>>(i,32);
   }
   return global_error_count;
 }
