@@ -405,7 +405,6 @@
     
   public:
     using backend::size;
-    using backend::unique_complex_size;
     
     void resize(std::size_t n)
     {
