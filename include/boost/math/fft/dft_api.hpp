@@ -141,6 +141,8 @@
     
     private:
     using buffer_type = std::vector<value_type,allocator_type> ;
+    
+    protected:
     buffer_type my_mem;
     
     public:
@@ -399,12 +401,18 @@
         ++out, ++in_first; --in_last;
       }
    } 
-   
+    using executor_halfcomplex::my_mem;
+    
   public:
     using backend::size;
     using backend::unique_complex_size;
-    using backend::resize;
-
+    
+    void resize(std::size_t n)
+    {
+        backend::resize(n);
+        my_mem.resize(n);
+    }
+    
     // complex types ctor. n: the size of the dft
     constexpr real_dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
       : backend(n,in_alloc), 
@@ -446,15 +454,18 @@
     {
       resize(std::distance(in_first,in_last));
       
-      std::vector<real_type,allocator_t> hc(size(),alloc);
-      
-      executor_halfcomplex::execute(in_first,in_last,hc.data(),
+      executor_halfcomplex::execute(
+        in_first,in_last,
+        my_mem.data(),
         [this](const real_type* i, real_type* o)
         {
           backend::real_to_halfcomplex(i,o);
         });
       
-      decode_halfcomplex(hc.data(),hc.data()+hc.size(),out);
+      decode_halfcomplex(
+        my_mem.data(),
+        my_mem.data()+size(),
+        out);
     }
 
     template<typename InputIteratorType,
@@ -465,11 +476,15 @@
     {
       resize(std::distance(in_first,in_last));
       
-      std::vector<real_type,allocator_t> hc(size(),alloc);
+      encode_halfcomplex(
+        in_first,
+        in_last,
+        my_mem.data());
       
-      encode_halfcomplex(in_first,in_last,hc.data());
-      
-      executor_halfcomplex::execute(hc.data(),hc.data()+hc.size(),out,
+      executor_halfcomplex::execute(
+        my_mem.data(),
+        my_mem.data()+size(),
+        out,
         [this](const real_type* i, real_type* o)
         {
           backend::halfcomplex_to_real(i,o);
