@@ -2,7 +2,7 @@
     boost::math::fft example 02.
     
     FFT transform-like API,
-    custom engine
+    GSL and FFTW backends
 */
 
 #include <boost/math/fft/fftw_backend.hpp>
@@ -27,13 +27,13 @@ int main()
     std::vector< std::complex<double> > A{1.0,2.0,3.0,4.0},B(A.size());
     
     // gsl engine, forward transform, out-of-place
-    // fft::transform<fft::gsl_dft<std::complex<double>>>::forward(A.cbegin(),A.cend(),B.begin());
+    // fft::transform< fft::gsl_dft<> >::forward(A.cbegin(),A.cend(),B.begin());
     fft::gsl_transform::forward(A.cbegin(),A.cend(),B.begin());
     
     print(B);
     
     // fftw engine, backward transform, in-place
-    // fft::transform<fft::fftw_dft<std::complex<double>>>::backward(B.cbegin(),B.cend(),B.begin());
+    // fft::transform< fft::fftw_dft<> >::backward(B.cbegin(),B.cend(),B.begin());
     fft::fftw_transform::backward(B.cbegin(),B.cend(),B.begin());
     
     print(B);
