@@ -58,29 +58,29 @@ using namespace boost::math::fft;
 namespace local
 {
   std::vector<char> static_buf(200000U);
+
+  boost::container::pmr::monotonic_buffer_resource
+    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
 }
 
 template<class Backend>
 void test_inverse(int N, int tolerance)
 // Try the execution of complex FFT
 {
-  boost::container::pmr::monotonic_buffer_resource
-    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
-
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::value_type;
   using real_value_type = typename Complex::value_type;
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
   {
-    std::vector<Complex,allocator_type> A(N,Complex(),&pool);
-    std::vector<Complex,allocator_type> B(N,Complex(),&pool);
-    std::vector<Complex,allocator_type> C(N,Complex(),&pool);
+    std::vector<Complex,allocator_type> A(N,Complex(),&local::pool);
+    std::vector<Complex,allocator_type> B(N,Complex(),&local::pool);
+    std::vector<Complex,allocator_type> C(N,Complex(),&local::pool);
     for(auto& x: A)
     {
       x.real( 1. );
       x.imag( 2. );
     }
-    Backend plan(N,&pool);
+    Backend plan(N,&local::pool);
     plan.forward(A.data(),A.data()+A.size(),B.data());
     plan.backward(B.data(),B.data()+B.size(),C.data());
     
@@ -114,23 +114,19 @@ template<class Backend>
 void test_inverse_real(int N, int tolerance)
 // Try the execution of real-to-halfcomplex 
 {
-
-  boost::container::pmr::monotonic_buffer_resource
-    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
-
   using allocator_type = typename Backend::allocator_type;
   using real_value_type = typename Backend::value_type;
   using plan_type = typename Backend::plan_type;
   
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
   {
-    std::vector<real_value_type,allocator_type> A(N,real_value_type(),&pool);
-    std::vector<real_value_type,allocator_type> B(N,real_value_type(),&pool);
-    std::vector<real_value_type,allocator_type> C(N,real_value_type(),&pool);
+    std::vector<real_value_type,allocator_type> A(N,real_value_type(),&local::pool);
+    std::vector<real_value_type,allocator_type> B(N,real_value_type(),&local::pool);
+    std::vector<real_value_type,allocator_type> C(N,real_value_type(),&local::pool);
 
     std::iota(A.begin(),A.end(),1);
 
-    plan_type plan(N,&pool);
+    plan_type plan(N,&local::pool);
     plan.real_to_halfcomplex(A.data(),A.data()+A.size(),B.data());
     plan.halfcomplex_to_real(B.data(),B.data()+B.size(),C.data());
 
@@ -164,9 +160,6 @@ template<class Backend>
 void test_inverse_real_complex(int N, int tolerance)
 // Try the execution of real-to-complex 
 {
-  boost::container::pmr::monotonic_buffer_resource
-    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
-
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::Complex;
   using complex_allocator_type = typename std::allocator_traits<allocator_type>::template rebind_alloc<Complex>;
@@ -175,13 +168,13 @@ void test_inverse_real_complex(int N, int tolerance)
   
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
   {
-    std::vector<real_value_type,allocator_type> A(N,real_value_type(),&pool);
-    std::vector<Complex,complex_allocator_type> B(N,Complex(),&pool);
-    std::vector<real_value_type,allocator_type> C(N,real_value_type(),&pool);
+    std::vector<real_value_type,allocator_type> A(N,real_value_type(),&local::pool);
+    std::vector<Complex,complex_allocator_type> B(N,Complex(),        &local::pool);
+    std::vector<real_value_type,allocator_type> C(N,real_value_type(),&local::pool);
 
     std::iota(A.begin(),A.end(),1);
 
-    plan_type plan(N,&pool);
+    plan_type plan(N,&local::pool);
     plan.real_to_complex(A.data(),A.data()+A.size(),B.data());
     plan.complex_to_real(B.data(),B.data()+B.size(),C.data());
 
@@ -242,7 +235,7 @@ void test_inverse_algebraic_fft()
 {
   std::array<char,200> my_buf;
   boost::container::pmr::monotonic_buffer_resource
-    pool{my_buf.data(),my_buf.size(),boost::container::pmr::null_memory_resource()};
+    my_pool{my_buf.data(),my_buf.size(),boost::container::pmr::null_memory_resource()};
 
   constexpr int N = 8;
   using M_int = boost::math::fft::my_modulo_lib::mint<Z337>;
@@ -250,12 +243,12 @@ void test_inverse_algebraic_fft()
   const M_int w{85};
   const M_int inv_N{M_int{N}.inverse()};
 
-  std::vector<M_int,mint_allocator> A(N,M_int(),&pool);
+  std::vector<M_int,mint_allocator> A(N,M_int(),&my_pool);
   std::iota(A.begin(),A.end(),1);
 
-  std::vector<M_int,mint_allocator> FT_A(&pool),FT_FT_A(&pool);
+  std::vector<M_int,mint_allocator> FT_A(&my_pool),FT_FT_A(&my_pool);
 
-  boost::math::fft::bsl_algebraic_dft<M_int,mint_allocator> plan(N,w,&pool);
+  boost::math::fft::bsl_algebraic_dft<M_int,mint_allocator> plan(N,w,&my_pool);
 
   plan.forward(A.cbegin(),A.cend(),std::back_inserter(FT_A));
   plan.backward(FT_A.cbegin(),FT_A.cend(),std::back_inserter(FT_FT_A));
