@@ -29,7 +29,7 @@ void * operator new(size_t size)
   return p;
 }
 void * operator new[](size_t size)
-{   
+{
   if(new_is_on==false)
    throw std::bad_alloc{};
   void * p = std::malloc(size);
@@ -38,14 +38,14 @@ void * operator new[](size_t size)
 
 #if __cplusplus >= 201700
 void * operator new(size_t size, size_t align)
-{   
+{
   if(new_is_on==false)
     throw std::bad_alloc{};
   void * p = std::aligned_alloc(size,align);
   return p;
 }
 void * operator new[](size_t size, size_t align)
-{   
+{
   if(new_is_on==false)
    throw std::bad_alloc{};
   void * p = std::aligned_alloc(size,align);
@@ -55,14 +55,17 @@ void * operator new[](size_t size, size_t align)
 
 using namespace boost::math::fft;
 
-std::array<char,200000> static_buf;
+namespace local
+{
+  std::vector<char> static_buf(200000U);
+}
 
 template<class Backend>
 void test_inverse(int N, int tolerance)
 // Try the execution of complex FFT
 {
   boost::container::pmr::monotonic_buffer_resource
-    pool{static_buf.data(),static_buf.size(),boost::container::pmr::null_memory_resource()};
+    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
 
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::value_type;
@@ -113,7 +116,7 @@ void test_inverse_real(int N, int tolerance)
 {
 
   boost::container::pmr::monotonic_buffer_resource
-    pool{static_buf.data(),static_buf.size(),boost::container::pmr::null_memory_resource()};
+    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
 
   using allocator_type = typename Backend::allocator_type;
   using real_value_type = typename Backend::value_type;
@@ -124,19 +127,19 @@ void test_inverse_real(int N, int tolerance)
     std::vector<real_value_type,allocator_type> A(N,real_value_type(),&pool);
     std::vector<real_value_type,allocator_type> B(N,real_value_type(),&pool);
     std::vector<real_value_type,allocator_type> C(N,real_value_type(),&pool);
-    
+
     std::iota(A.begin(),A.end(),1);
-    
+
     plan_type plan(N,&pool);
     plan.real_to_halfcomplex(A.data(),A.data()+A.size(),B.data());
     plan.halfcomplex_to_real(B.data(),B.data()+B.size(),C.data());
-    
+
     const real_value_type inverse_N = real_value_type{1.0}/N;
     for(auto &x : C)
       x *= inverse_N;
-    
+
     real_value_type diff{0.0};
-    
+
     for(size_t i=0;i<A.size();++i)
     {
       using std::norm;
@@ -162,7 +165,7 @@ void test_inverse_real_complex(int N, int tolerance)
 // Try the execution of real-to-complex 
 {
   boost::container::pmr::monotonic_buffer_resource
-    pool{static_buf.data(),static_buf.size(),boost::container::pmr::null_memory_resource()};
+    pool{local::static_buf.data(),local::static_buf.size(),boost::container::pmr::null_memory_resource()};
 
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::Complex;
@@ -175,13 +178,13 @@ void test_inverse_real_complex(int N, int tolerance)
     std::vector<real_value_type,allocator_type> A(N,real_value_type(),&pool);
     std::vector<Complex,complex_allocator_type> B(N,Complex(),&pool);
     std::vector<real_value_type,allocator_type> C(N,real_value_type(),&pool);
-    
+
     std::iota(A.begin(),A.end(),1);
-    
+
     plan_type plan(N,&pool);
     plan.real_to_complex(A.data(),A.data()+A.size(),B.data());
     plan.complex_to_real(B.data(),B.data()+B.size(),C.data());
-    
+
     const real_value_type inverse_N = real_value_type{1.0}/N;
     for(auto &x : C)
       x *= inverse_N;
@@ -197,10 +200,10 @@ void test_inverse_real_complex(int N, int tolerance)
     diff = sqrt(diff)*inverse_N;
     using std::max;
     using std::abs;
-    
+
     const real_value_type expected = 0.0;
     const real_value_type computed = diff;
-    
+
     real_value_type denom = (max)(abs(expected), real_value_type(1));
     real_value_type mollified_relative_error = abs(expected - computed)/denom;
     if (mollified_relative_error > tol)
@@ -240,7 +243,7 @@ void test_inverse_algebraic_fft()
   std::array<char,200> my_buf;
   boost::container::pmr::monotonic_buffer_resource
     pool{my_buf.data(),my_buf.size(),boost::container::pmr::null_memory_resource()};
-    
+
   constexpr int N = 8;
   using M_int = boost::math::fft::my_modulo_lib::mint<Z337>;
   using mint_allocator = boost::container::pmr::polymorphic_allocator<M_int> ;
@@ -249,11 +252,11 @@ void test_inverse_algebraic_fft()
 
   std::vector<M_int,mint_allocator> A(N,M_int(),&pool);
   std::iota(A.begin(),A.end(),1);
-  
+
   std::vector<M_int,mint_allocator> FT_A(&pool),FT_FT_A(&pool);
 
   boost::math::fft::bsl_algebraic_dft<M_int,mint_allocator> plan(N,w,&pool);
-  
+
   plan.forward(A.cbegin(),A.cend(),std::back_inserter(FT_A));
   plan.backward(FT_A.cbegin(),FT_A.cend(),std::back_inserter(FT_FT_A));
 
