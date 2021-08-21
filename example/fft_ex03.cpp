@@ -2,7 +2,7 @@
     boost::math::fft example 03.
     
     FFT plan-like API,
-    Boost engine
+    default engine
 */
 
 #include <boost/math/fft/bsl_backend.hpp>
@@ -25,7 +25,7 @@ int main()
 {
     std::vector< std::complex<double> > A{1.0,2.0,3.0,4.0},B(A.size());
     
-    // create plan
+    // default engine, create plan
     fft::bsl_dft<std::complex<double>> P(A.size());
     
     // forward transform, out-of-place

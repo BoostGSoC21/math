@@ -567,8 +567,9 @@
                      InputIterator  input_end,
                      OutputIterator output)
     {
-      using Real = typename std::iterator_traits<InputIterator>::value_type;
-      plan_type<Real> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      // using output_value_type = typename std::iterator_traits<OutputIterator>::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
       plan.real_to_complex(input_begin, input_end, output);
     }
   
@@ -580,9 +581,9 @@
                       InputIterator  input_end,
                       OutputIterator output)
     {
-      using Complex  = typename std::iterator_traits<InputIterator>::value_type;
-      using Real     = typename Complex::value_type;
-      plan_type<Real> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      // using output_value_type = typename std::iterator_traits<OutputIterator>::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
       plan.complex_to_real(input_begin, input_end, output);
     }
     
@@ -595,8 +596,8 @@
                      InputIterator  input_end,
                      OutputIterator output)
     {
-      using Real = typename std::iterator_traits<InputIterator>::value_type;
-      plan_type<Real> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
       plan.real_to_halfcomplex(input_begin, input_end, output);
     }
   
@@ -608,8 +609,8 @@
                       InputIterator  input_end,
                       OutputIterator output)
     {
-      using Real = typename std::iterator_traits<InputIterator>::value_type;
-      plan_type<Real> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
       plan.halfcomplex_to_real(input_begin, input_end, output);
     }
   

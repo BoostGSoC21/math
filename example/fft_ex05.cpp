@@ -43,10 +43,10 @@ void test_bsl() {
     std::cout << "Real type is    " << boost::core::demangle(typeid(typename Complex::value_type).name()) << "\n";
     std::vector< Complex > A{1.0,2.0,3.0,4.0},B(A.size());
     // forward transform, out-of-place
-    boost::math::fft::bsl_transform::forward(A.cbegin(),A.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::bsl_dft<Complex>>::forward(A.cbegin(),A.cend(),B.begin());
     print(B);
     // backward transform, in-place
-    boost::math::fft::bsl_transform::backward(B.cbegin(),B.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::bsl_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
 
@@ -56,10 +56,10 @@ void test_fftw() {
     std::cout << "FFTW engine with " << boost::core::demangle(typeid(Complex).name()) << "\n";
     std::vector< Complex > A{1.0,2.0,3.0,4.0},B(A.size());
     // forward transform, out-of-place
-    boost::math::fft::fftw_transform::forward(A.cbegin(),A.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::fftw_dft<Complex>>::forward(A.cbegin(),A.cend(),B.begin());
     print(B);
     // backward transform, in-place
-    boost::math::fft::fftw_transform::backward(B.cbegin(),B.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::fftw_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
 
@@ -68,10 +68,10 @@ void test_gsl() {
     std::cout << "GSL engine with " << boost::core::demangle(typeid(Complex).name()) << "\n";
     std::vector< Complex > A{1.0,2.0,3.0,4.0},B(A.size());
     // forward transform, out-of-place
-    boost::math::fft::gsl_transform::forward(A.cbegin(),A.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::gsl_dft<Complex>>::forward(A.cbegin(),A.cend(),B.begin());
     print(B);
     // backward transform, in-place
-    boost::math::fft::gsl_transform::backward(B.cbegin(),B.cend(),B.begin());
+    boost::math::fft::transform<boost::math::fft::gsl_dft<Complex>>::backward(B.cbegin(),B.cend(),B.begin());
     print(B);
 }
 #endif

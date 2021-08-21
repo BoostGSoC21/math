@@ -12,7 +12,6 @@
 */
 
 #include <boost/math/fft/fftw_backend.hpp>
-#include <boost/math/fft/bsl_backend.hpp>
 #include <iostream>
 #include <vector>
 #include <boost/math/fft/multiprecision_complex.hpp>
@@ -36,33 +35,28 @@ void print(const std::vector<T>& V)
 
 template<class T>
 void multiply_halfcomplex(const std::vector<T>& A, const std::vector<T>& B)
-// Warning: this routine depends on the representation of the Halfcomplex
 {
   std::cout << "Polynomial multiplication using halfcomplex with: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
   std::vector<T> TA(N),TB(N);
-  boost::math::fft::fftw_rdft<T> P(N); 
+  boost::math::fft::fftw_rfft<T> P(N); 
   P.real_to_halfcomplex(A.begin(),A.end(),TA.begin());
   P.real_to_halfcomplex(B.begin(),B.end(),TB.begin());
   
   std::vector<T> C(N);
   
   C[0]=TA[0]*TB[0];
-  const unsigned int N_2 = (N-1)/2;
-  for(unsigned int i=1;i<=N_2;++i)
+  for(unsigned int i=1;i+1<N;i+=2)
   {
-    C[i] = TA[i]*TB[i]-TA[N-i]*TB[N-i];
-  }
-  for(unsigned int i=N-N_2;i<N;++i)
-  {
-    C[i] = TA[N-i]*TB[i]+TA[i]*TB[N-i];
+    C[i] = TA[i]*TB[i]-TA[i+1]*TB[i+1];
+    C[i+1] = TA[i]*TB[i+1] + TA[i+1]*TB[i];
   }
   if(N%2==0)
   {
-    C[N_2+1]=TA[N_2+1]*TB[N_2+1];
+    C.back() = TA.back()*TB.back();
   }
   
-  boost::math::fft::fftw_real_transform::halfcomplex_to_real(C.begin(),C.end(),C.begin());
+  P.halfcomplex_to_real(C.begin(),C.end(),C.begin());
   std::transform(C.begin(), C.end(), C.begin(),
                  [N](T x) { return x / N; });
   
@@ -74,9 +68,7 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
   std::cout << "Polynomial multiplication using complex: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
   std::vector< boost::multiprecision::complex<T> > TA(N),TB(N);
-  
-  // we can use the plan interface
-  boost::math::fft::bsl_rdft<T> P(N); 
+  boost::math::fft::fftw_rfft<T> P(N); 
   P.real_to_complex(A.begin(),A.end(),TA.begin());
   P.real_to_complex(B.begin(),B.end(),TB.begin());
   
@@ -87,8 +79,7 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
     TA[i]*=TB[i];
   }
   
-  // we can use the transform interface
-  boost::math::fft::bsl_real_transform::complex_to_real(TA.begin(),TA.end(),C.begin());
+  P.complex_to_real(TA.begin(),TA.end(),C.begin());
   std::transform(C.begin(), C.end(), C.begin(),
                  [N](T x) { return x / N; });
   

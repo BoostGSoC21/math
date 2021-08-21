@@ -95,38 +95,38 @@ int main()
 {
   // corner cases
 #if defined(__GNUC__)
-  test_r2c<fftw_rdft<double>>(1);
-  test_r2c<gsl_rdft<double>>(1);
+  test_r2c<fftw_rfft<double>>(1);
+  test_r2c<gsl_rfft<double>>(1);
 #endif
-  test_r2c<bsl_rdft<double>>(1);
+  test_r2c<bsl_rfft<double>>(1);
   
   // primes 
   for(auto n: std::vector<int>{2,3,5,7,11,13,17,19})
   {
 #if defined(__GNUC__)
-    test_r2c<fftw_rdft<double>>(n,4);
-    test_r2c<gsl_rdft<double>>(n,16);
+    test_r2c<fftw_rfft<double>>(n,4);
+    test_r2c<gsl_rfft<double>>(n,16);
 #endif
-    test_r2c<bsl_rdft<double>>(n,4);
+    test_r2c<bsl_rfft<double>>(n,4);
   }
   
   // powers of two
   for(auto n: std::vector<int>{2,4,8,16,32,64,128})
   {
 #if defined(__GNUC__)
-    test_r2c<fftw_rdft<double>>(n,4);
-    test_r2c<gsl_rdft<double>>(n,4);
+    test_r2c<fftw_rfft<double>>(n,4);
+    test_r2c<gsl_rfft<double>>(n,4);
 #endif
-    test_r2c<bsl_rdft<double>>(n,4);
+    test_r2c<bsl_rfft<double>>(n,4);
   }
   // composite
   for(auto n: std::vector<int>{6,9,10,12,14,15,18,20,21,22,24,25,26,27,28,30})
   {
 #if defined(__GNUC__)
-    test_r2c<fftw_rdft<double>>(n,8);
-    test_r2c<gsl_rdft<double>>(n,16);
+    test_r2c<fftw_rfft<double>>(n,8);
+    test_r2c<gsl_rfft<double>>(n,16);
 #endif
-    test_r2c<bsl_rdft<double>>(n,4);
+    test_r2c<bsl_rfft<double>>(n,4);
   }  
 // TODO
 #ifdef BOOST_MATH_USE_FLOAT128
