@@ -55,14 +55,15 @@ void * operator new[](size_t size, size_t align)
 
 using namespace boost::math::fft;
 
+std::array<char,200000> static_buf;
+
 template<class Backend>
 void test_inverse(int N, int tolerance)
 // Try the execution of complex FFT
 {
-  std::array<char,200000> buf;
   boost::container::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
-  
+    pool{static_buf.data(),static_buf.size(),boost::container::pmr::null_memory_resource()};
+
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::value_type;
   using real_value_type = typename Complex::value_type;
@@ -110,10 +111,10 @@ template<class Backend>
 void test_inverse_real(int N, int tolerance)
 // Try the execution of real-to-halfcomplex 
 {
-  std::array<char,200000> buf;
+
   boost::container::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
-  
+    pool{static_buf.data(),static_buf.size(),boost::container::pmr::null_memory_resource()};
+
   using allocator_type = typename Backend::allocator_type;
   using real_value_type = typename Backend::value_type;
   using plan_type = typename Backend::plan_type;
@@ -160,10 +161,9 @@ template<class Backend>
 void test_inverse_real_complex(int N, int tolerance)
 // Try the execution of real-to-complex 
 {
-  std::array<char,200000> buf;
   boost::container::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
-  
+    pool{static_buf.data(),static_buf.size(),boost::container::pmr::null_memory_resource()};
+
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::Complex;
   using complex_allocator_type = typename std::allocator_traits<allocator_type>::template rebind_alloc<Complex>;
@@ -237,9 +237,9 @@ public:
 
 void test_inverse_algebraic_fft()
 {
-  std::array<char,200> buf;
+  std::array<char,200> my_buf;
   boost::container::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
+    pool{my_buf.data(),my_buf.size(),boost::container::pmr::null_memory_resource()};
     
   constexpr int N = 8;
   using M_int = boost::math::fft::my_modulo_lib::mint<Z337>;
