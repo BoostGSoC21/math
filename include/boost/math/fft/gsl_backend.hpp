@@ -48,11 +48,6 @@ namespace fft { namespace detail {
       gsl_fft_complex_wavetable *wtable;
       gsl_fft_complex_workspace *wspace;
       
-      // real fft
-      gsl_fft_real_wavetable        *real_wtable;
-      gsl_fft_halfcomplex_wavetable *halfcomplex_wtable;
-      gsl_fft_real_workspace        *real_wspace;
-        
       void execute(plan_type p, const complex_value_type* in, complex_value_type* out) const
       {
         if(in!=out)
@@ -72,53 +67,15 @@ namespace fft { namespace detail {
           reinterpret_cast<real_value_type*>(std::addressof(*out)),
           1, my_size, wtable, wspace);
       }
-      void execute(const real_value_type* in, complex_value_type* out) const
-      {
-        if(reinterpret_cast<const void*>(in)!=reinterpret_cast<void*>(out))
-        {
-          // we avoid this extra step for in-place transforms
-          // notice that if in==out, the following code has
-          // undefined-behavior
-          std::memcpy(reinterpret_cast<void*>(out),
-                      reinterpret_cast<const void*>(in),
-                      sizeof(real_value_type)*size());
-        }
-        
-        gsl_fft_real_transform(
-          reinterpret_cast<real_value_type*>(out),
-          1, size(), real_wtable, real_wspace);
-        
-        halfcomplex_to_complex(reinterpret_cast<real_value_type*>(out));
-      }
-      void halfcomplex_to_complex(real_value_type* data)const
-      {
-        std::size_t N = size();
-        for(std::size_t i=N;i>0;--i)
-          data[i] = data[i-1];
-        data[1] = 0;
-        
-        if(N%2==0)
-        {
-          data[N+1] = 0;
-        }
-      }
       void free()
       {
         gsl_fft_complex_wavetable_free(wtable);
         gsl_fft_complex_workspace_free(wspace);
-        
-        gsl_fft_real_wavetable_free(real_wtable);
-        gsl_fft_halfcomplex_wavetable_free(halfcomplex_wtable);
-        gsl_fft_real_workspace_free(real_wspace);
       }
       void alloc()
       {
         wtable = gsl_fft_complex_wavetable_alloc(size());
         wspace = gsl_fft_complex_workspace_alloc(size());
-        
-        real_wtable        = gsl_fft_real_wavetable_alloc(size());
-        halfcomplex_wtable = gsl_fft_halfcomplex_wavetable_alloc(size());
-        real_wspace        = gsl_fft_real_workspace_alloc(size());
       }
    public:
       
@@ -151,10 +108,6 @@ namespace fft { namespace detail {
       void backward(const complex_value_type* in, complex_value_type* out) const
       {
         execute(backward_plan,in,out);
-      }
-      void r2c(const real_value_type* in, complex_value_type* out) const
-      {
-        execute(in, out);  
       }
     };
     
@@ -289,52 +242,6 @@ namespace fft { namespace detail {
       {
         execute<backward_plan>(in,out);
       }
-      template<class Complex>
-      void real_to_complex(const real_value_type* in, Complex *out)const
-      {
-        const std::size_t N = size();
-        const std::size_t M = unique_complex_size();
-        
-        vector_t<real_value_type> tmp(N,my_alloc);
-        real_to_halfcomplex(in,tmp.data());
-        
-        out[0].real(tmp.front());
-        out[0].imag(0);
-        
-        for(unsigned int i=1,j=1;i<M && j+1<N;++i,j+=2)
-        {
-          out[i].real(tmp[j]);
-          out[i].imag(tmp[j+1]);
-        }
-        
-        if(N%2==0)
-        {
-          out[M-1].real(tmp.back());
-          out[M-1].imag(0);
-        }
-      }
-      template<class Complex>
-      void complex_to_real(const Complex* in, real_value_type* out) const
-      {
-        const std::size_t N = size();
-        const std::size_t M = unique_complex_size();
-        
-        vector_t<real_value_type> tmp(N,my_alloc);
-        
-        tmp.front() = in[0].real();
-        
-        for(unsigned int i=1,j=1;i<M && j+1<N;++i,j+=2)
-        {
-          tmp[j]   = in[i].real();
-          tmp[j+1] = in[i].imag();
-        }
-        
-        if(N%2==0)
-        {
-          tmp.back() = in[M-1].real();
-        }
-        halfcomplex_to_real(tmp.data(),out);
-      }
     };
     #endif
   } // namespace detail    
@@ -347,6 +254,7 @@ namespace fft { namespace detail {
   using gsl_rfft = detail::real_dft<detail::gsl_rfft_backend,T,Allocator_t>;
 
   using gsl_transform = transform< gsl_dft<> >;
+  using gsl_real_transform = transform< gsl_rfft<> >;
   #endif
 
 } // namespace fft

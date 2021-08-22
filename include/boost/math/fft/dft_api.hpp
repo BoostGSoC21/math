@@ -141,6 +141,8 @@
     
     private:
     using buffer_type = std::vector<value_type,allocator_type> ;
+    
+    protected:
     buffer_type my_mem;
     
     public:
@@ -272,9 +274,7 @@
   template< template<class ... Args> class BackendType, class T, class allocator_t >
   class complex_dft : 
         public BackendType<T,allocator_t> , 
-        public symmetric_executor<T,allocator_t>,
-        public asymmetric_executor<typename T::value_type,T,allocator_t>,
-        public asymmetric_executor<T,typename T::value_type,allocator_t>
+        public symmetric_executor<T,allocator_t>
   {
     public:
     using complex_type    = T;
@@ -285,8 +285,6 @@
     
     using backend         = BackendType<complex_type,allocator_type>;
     using executor_C2C    = symmetric_executor<complex_type,allocator_type>;
-    using executor_R2C    = asymmetric_executor<real_type,complex_type,allocator_type>;
-    using executor_C2R    = asymmetric_executor<complex_type,real_type,allocator_type>;
     
     template<class U, class A>
     using other = complex_dft<BackendType,U,A>;
@@ -302,8 +300,6 @@
     constexpr complex_dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
       : backend(n,in_alloc), 
         executor_C2C(in_alloc), 
-        executor_R2C(in_alloc), 
-        executor_C2R(in_alloc), 
         alloc{in_alloc} { }
 
     template<typename InputIteratorType,
@@ -338,9 +334,7 @@
   template< template<class ... Args> class BackendType, class T, class allocator_t >
   class real_dft : 
         public BackendType<T,allocator_t> , 
-        public symmetric_executor<T,allocator_t>,
-        public asymmetric_executor<T,std::complex<T>,allocator_t>,
-        public asymmetric_executor<std::complex<T>,T,allocator_t>
+        public symmetric_executor<T,allocator_t>
   {
     public:
     using value_type      = T;
@@ -350,8 +344,6 @@
     
     using backend         = BackendType<real_type,allocator_type>;
     using executor_halfcomplex = symmetric_executor<real_type,allocator_type>;
-    using executor_r2c = asymmetric_executor<real_type,complex_type,allocator_type>;
-    using executor_c2r = asymmetric_executor<complex_type,real_type,allocator_type>;
     
     template<class U, class A>
     using other = real_dft<BackendType,U,A>;
@@ -359,11 +351,67 @@
     private:
     allocator_type alloc;
     
+    template<typename InputIteratorType>
+    void encode_halfcomplex(
+      InputIteratorType in_first, InputIteratorType in_last,
+      real_type* out) const
+    {
+      unsigned int i=0,j=size();
+      {
+        *out = in_first->real();
+        ++in_first, ++out, ++i; --j;
+      }
+      while(i<=j)
+      {
+        *out = in_first->real();
+        ++in_first, ++out, ++i, --j;
+      }
+      while(j>0)
+      {
+        *out = in_first->imag();
+        ++in_first, ++out, ++i, --j;
+      }
+    }
+    template<typename OutputIteratorType>
+    void decode_halfcomplex(
+      const real_type *in_first, const real_type* in_last, 
+      OutputIteratorType out) const
+    {
+      using complex_type = typename std::iterator_traits<OutputIteratorType>::value_type;
+      
+      real_type const * const zeroth = in_first;
+      
+      {
+        *out = *in_first;
+        ++out, ++in_first; --in_last;
+      }
+      while(in_first < in_last)
+      {
+        *out = complex_type{*in_first, - *in_last};
+        ++out, ++in_first; --in_last;
+      }
+      if(in_first == in_last)
+      {
+        *out = *in_first;
+        ++out, ++in_first; --in_last;
+      }
+      while(in_last>zeroth)
+      {
+        *out = complex_type{*in_last,*in_first};
+        ++out, ++in_first; --in_last;
+      }
+   } 
+    using executor_halfcomplex::my_mem;
+    
   public:
     using backend::size;
-    using backend::unique_complex_size;
-    using backend::resize;
-
+    
+    void resize(std::size_t n)
+    {
+        backend::resize(n);
+        my_mem.resize(n);
+    }
+    
     // complex types ctor. n: the size of the dft
     constexpr real_dft(unsigned int n, const allocator_type& in_alloc = allocator_type{} )
       : backend(n,in_alloc), 
@@ -404,11 +452,19 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_r2c::execute(in_first,in_last,out,
-        [this](const real_type* i, complex_type* o)
+      
+      executor_halfcomplex::execute(
+        in_first,in_last,
+        my_mem.data(),
+        [this](const real_type* i, real_type* o)
         {
-          backend::template real_to_complex<complex_type>(i,o);
+          backend::real_to_halfcomplex(i,o);
         });
+      
+      decode_halfcomplex(
+        my_mem.data(),
+        my_mem.data()+size(),
+        out);
     }
 
     template<typename InputIteratorType,
@@ -418,10 +474,19 @@
       OutputIteratorType out)
     {
       resize(std::distance(in_first,in_last));
-      executor_c2r::execute(in_first,in_last,out,
-        [this](const complex_type* i, real_type* o)
+      
+      encode_halfcomplex(
+        in_first,
+        in_last,
+        my_mem.data());
+      
+      executor_halfcomplex::execute(
+        my_mem.data(),
+        my_mem.data()+size(),
+        out,
+        [this](const real_type* i, real_type* o)
         {
-          backend::template complex_to_real<complex_type>(i,o);
+          backend::halfcomplex_to_real(i,o);
         });
     }
     
@@ -491,6 +556,62 @@
       using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
       plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)),w);
       plan.backward(input_begin, input_end, output);
+    }
+    
+    // std::transform-like Fourier Transform API
+    // for real types
+    template<typename InputIterator,
+             typename OutputIterator>
+    static void real_to_complex(
+                     InputIterator  input_begin,
+                     InputIterator  input_end,
+                     OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      // using output_value_type = typename std::iterator_traits<OutputIterator>::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      plan.real_to_complex(input_begin, input_end, output);
+    }
+  
+    // std::transform-like Fourier Transform API
+    // for real types
+    template<typename InputIterator,
+             typename OutputIterator>
+    static void complex_to_real(InputIterator  input_begin,
+                      InputIterator  input_end,
+                      OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      // using output_value_type = typename std::iterator_traits<OutputIterator>::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      plan.complex_to_real(input_begin, input_end, output);
+    }
+    
+    // std::transform-like Fourier Transform API
+    // for real types
+    template<typename InputIterator,
+             typename OutputIterator>
+    static void real_to_halfcomplex(
+                     InputIterator  input_begin,
+                     InputIterator  input_end,
+                     OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      plan.real_to_halfcomplex(input_begin, input_end, output);
+    }
+  
+    // std::transform-like Fourier Transform API
+    // for real types
+    template<typename InputIterator,
+             typename OutputIterator>
+    static void halfcomplex_to_real(InputIterator  input_begin,
+                      InputIterator  input_end,
+                      OutputIterator output)
+    {
+      using input_value_type  = typename std::iterator_traits<InputIterator >::value_type;
+      plan_type<input_value_type> plan(static_cast<unsigned int>(std::distance(input_begin, input_end)));
+      plan.halfcomplex_to_real(input_begin, input_end, output);
     }
   
     template<typename InputIterator1,

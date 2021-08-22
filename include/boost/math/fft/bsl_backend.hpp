@@ -238,8 +238,8 @@
   using bsl_algebraic_dft = detail::algebraic_dft<detail::bsl_backend,RingType,Allocator_t>;
   
   using bsl_transform = transform< bsl_dft<> >;
-  
   using bsl_algebraic_transform = transform< bsl_algebraic_dft<> >;
+  using bsl_real_transform = transform< bsl_rfft<> >;
   
   } } } // namespace boost::math::fft
 
