@@ -11,12 +11,12 @@ int global_error_count{0};
 #include <cstdlib>
 #include <boost/math/fft/bsl_backend.hpp>
 #include <array>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
-#include <boost/container/pmr/global_resource.hpp>
-
 
 bool new_is_on{true};
+
+#if __cplusplus >= 201700L
+#include <memory>
+#include <memory_resource>
 
 void * operator new(size_t size)
 {   
@@ -33,7 +33,6 @@ void * operator new[](size_t size)
   return p;
 }
 
-#if __cplusplus >= 201700
 void * operator new(size_t size, size_t align)
 {   
   if(new_is_on==false)
@@ -55,24 +54,34 @@ using namespace boost::math::fft;
 template<class Backend>
 void test_inverse(int N, int tolerance)
 {
+#if __cplusplus >= 201700
   std::array<char,200000> buf;
-  boost::container::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
+  std:::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),std::pmr::null_memory_resource()};
+#endif
   
   using allocator_type = typename Backend::allocator_type;
   using Complex = typename Backend::value_type;
   using real_value_type = typename Complex::value_type;
   const real_value_type tol = tolerance*std::numeric_limits<real_value_type>::epsilon();
   {
+#if __cplusplus >= 201700
     std::vector<Complex,allocator_type> A(N,Complex(),&pool);
     std::vector<Complex,allocator_type> B(N,Complex(),&pool);
     std::vector<Complex,allocator_type> C(N,Complex(),&pool);
+    Backend plan(N,&pool);
+#else
+    std::vector<Complex,allocator_type> A(N,Complex());
+    std::vector<Complex,allocator_type> B(N,Complex());
+    std::vector<Complex,allocator_type> C(N,Complex());
+    Backend plan(N);
+#endif
+    
     for(auto& x: A)
     {
       x.real( 1. );
       x.imag( 2. );
     }
-    Backend plan(N,&pool);
     plan.forward(A.data(),A.data()+A.size(),B.data());
     plan.backward(B.data(),B.data()+B.size(),C.data());
     
@@ -107,7 +116,11 @@ template<class T>
 struct complex_bsl_dft
 {
   using Complex = boost::multiprecision::complex<T> ;
+#if __cplusplus >= 201700
   using type = bsl_dft< Complex, boost::container::pmr::polymorphic_allocator<Complex> >;
+#else
+  using type = bsl_dft< Complex, std::allocator<Complex> >;
+#endif
 };
 int main()
 {

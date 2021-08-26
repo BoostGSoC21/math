@@ -1465,7 +1465,7 @@ test-suite float128_tests : [ get_float128_tests ] ;
 test-suite fft :
    [ run fft_compile.cpp             ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//gsl : : :  ]
    [ run fft_allocator.cpp : : : ]
-   [ run fft_pmr_allocator.cpp ../../container/build//boost_container : : : ]
+   [ run fft_pmr_allocator.cpp : : : ]
    [ run fft_correctedness.cpp ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//gsl ../config//quadmath ../tools//mpfr ../tools//gmp : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
    [ run fft_iterators.cpp   ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//gsl : : : ]
    [ run fft_non-complex.cpp : : : ]
@@ -1489,9 +1489,9 @@ test-suite fft_all :
 ;
 
 test-suite fft_bsl_msvc :
-   [ run fft_compile.cpp                                              : <include>../../multiprecision/include : : release : fft_compile_bsl_msvc       ]
-   [ run fft_allocator.cpp                                            : <include>../../multiprecision/include : : release : fft_allocator_bsl_msvc     ]
-   [ run fft_pmr_allocator.cpp ../../container/build//boost_container : <include>../../multiprecision/include : : release : fft_pmr_allocator_bsl_msvc ]
+   [ run fft_compile.cpp                                              : : : release : fft_compile_bsl_msvc       ]
+   [ run fft_allocator.cpp                                            : : : release : fft_allocator_bsl_msvc     ]
+   [ run fft_pmr_allocator.cpp                                        : : : release : fft_pmr_allocator_bsl_msvc ]
 #  [ run fft_correctedness.cpp ../../container/build//boost_container : <include>../../multiprecision/include : : release : fft_correctedness_bsl_msvc ]
    [ run fft_iterators.cpp                                            : <include>../../multiprecision/include : : release : fft_iterators_bsl_msvc ]
    [ run fft_non-complex.cpp                                          : <include>../../multiprecision/include : : release : fft_non-complex_msvc ]
