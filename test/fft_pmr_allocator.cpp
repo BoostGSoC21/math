@@ -56,7 +56,7 @@ void test_inverse(int N, int tolerance)
 {
 #if __cplusplus >= 201700
   std::array<char,200000> buf;
-  std:::pmr::monotonic_buffer_resource
+  std::pmr::monotonic_buffer_resource
     pool{buf.data(),buf.size(),std::pmr::null_memory_resource()};
 #endif
   
