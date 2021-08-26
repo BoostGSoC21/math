@@ -52,9 +52,7 @@
   private:
     enum plan_type { forward_plan , backward_plan};
     
-    template<typename U = RingType>
-    typename std::enable_if< boost::multiprecision::is_boost_complex<U>::value==true  >::type
-    execute(plan_type plan, const RingType * in, RingType* out)const
+    void execute(plan_type plan, const RingType * in, RingType* out)const
     {
       const long N = static_cast<long>(size());
       const int sign = (plan == forward_plan ? 1 : -1);
@@ -205,7 +203,7 @@
           out[0]=in[0];
           return;
         case 2:
-          detail::real_inverse_dft_2(in,out,1);
+          detail::real_dft_2(in,out,1);
           return;
       }
       if( detail::is_power2(N))

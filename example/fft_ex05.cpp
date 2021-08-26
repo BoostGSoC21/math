@@ -14,7 +14,7 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/cpp_bin_float.hpp>
 #include <boost/multiprecision/cpp_complex.hpp>
-//#include <boost/multiprecision/mpc.hpp>
+#include <boost/multiprecision/mpc.hpp>
 #ifdef BOOST_MATH_USE_FLOAT128
 #include <boost/multiprecision/complex128.hpp>
 #endif
@@ -82,16 +82,12 @@ int main()
     test_bsl<std::complex<double>>();
     test_bsl<std::complex<long double>>();
 #ifdef BOOST_MATH_USE_FLOAT128
-    test_bsl<                               boost::multiprecision::complex128        >();
-    test_bsl<boost::multiprecision::complex<boost::multiprecision::float128          >>(); // same thing.
+    test_bsl< boost::multiprecision::complex128 >();
 #endif
-    test_bsl<                               boost::multiprecision::cpp_complex_50     >();
-    test_bsl<boost::multiprecision::complex<boost::multiprecision::cpp_bin_float_50  >>(); // same thing.
-    test_bsl<                               boost::multiprecision::cpp_complex_quad   >();
-    test_bsl<boost::multiprecision::complex<boost::multiprecision::cpp_bin_float_quad>>(); // same thing.
+    test_bsl< boost::multiprecision::cpp_complex_50 >();
+    test_bsl< boost::multiprecision::cpp_complex_quad >();
 #if defined(__GNUC__)
-    test_bsl<                               boost::multiprecision::mpc_complex_50     >();
-    test_bsl<boost::multiprecision::complex<boost::multiprecision::mpfr_float_50     >>(); // same thing.
+    test_bsl< boost::multiprecision::mpc_complex_50 >();
 #endif
 
 #if defined(__GNUC__)

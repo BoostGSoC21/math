@@ -1463,7 +1463,7 @@ rule get_float128_tests
 test-suite float128_tests : [ get_float128_tests ] ;
 
 test-suite fft :
-   [ run fft_compile.cpp             ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//gsl ../tools//mpfr ../tools//gmp                                       : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
+   [ run fft_compile.cpp             ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//gsl : : :  ]
    [ run fft_allocator.cpp           ../tools//mpfr ../tools//gmp                                                                                                           : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
    [ run fft_pmr_allocator.cpp       ../../container/build//boost_container ../tools//mpfr ../tools//gmp                                                                    : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
    [ run fft_correctedness.cpp       ../config//fftw3 ../config//fftw3f ../config//fftw3l ../config//fftw3q ../config//gsl ../config//quadmath ../tools//mpfr ../tools//gmp : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ]  ]
@@ -1481,7 +1481,7 @@ test-suite fft :
 ;
 
 test-suite fft_all :
-   [ run fft_auxiliary_functions.cpp ../tools//mpfr ../tools//gmp                                                                                                           : <include>../../multiprecision/include ../tools//mpfr ../tools//gmp : : [ check-target-builds ../config//has_mpfr : : <build>no ] : fft_auxiliary_functions_all ]
+   [ run fft_auxiliary_functions.cpp : : : : fft_auxiliary_functions_all ]
 ;
 
 test-suite fft_bsl_msvc :
