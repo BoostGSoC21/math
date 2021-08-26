@@ -230,14 +230,14 @@
   using bsl_dft = detail::complex_dft<detail::bsl_backend,RingType,Allocator_t>;
   
   template<class T = double, class Allocator_t = std::allocator<T> >
-  using bsl_rfft = detail::real_dft<detail::bsl_rfft_backend,T,Allocator_t>;
+  using bsl_rdft = detail::real_dft<detail::bsl_rfft_backend,T,Allocator_t>;
   
   template<class RingType = std::complex<double>, class Allocator_t = std::allocator<RingType> >
   using bsl_algebraic_dft = detail::algebraic_dft<detail::bsl_backend,RingType,Allocator_t>;
   
   using bsl_transform = transform< bsl_dft<> >;
   using bsl_algebraic_transform = transform< bsl_algebraic_dft<> >;
-  using bsl_real_transform = transform< bsl_rfft<> >;
+  using bsl_real_transform = transform< bsl_rdft<> >;
   
   } } } // namespace boost::math::fft
 

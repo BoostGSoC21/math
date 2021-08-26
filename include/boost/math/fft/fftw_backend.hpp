@@ -556,10 +556,10 @@
   using fftw_dft = detail::complex_dft<detail::fftw_backend,RingType,Allocator_t>;
   
   template<class T = double, class Allocator_t = std::allocator<T> >
-  using fftw_rfft = detail::real_dft<detail::fftw_rfft_backend,T,Allocator_t>;
+  using fftw_rdft = detail::real_dft<detail::fftw_rfft_backend,T,Allocator_t>;
 
   using fftw_transform = transform< fftw_dft<> >;
-  using fftw_real_transform = transform< fftw_rfft<> >;
+  using fftw_real_transform = transform< fftw_rdft<> >;
   #endif
 
   } } } // namespace boost::math::fft

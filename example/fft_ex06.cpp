@@ -39,7 +39,7 @@ void multiply_halfcomplex(const std::vector<T>& A, const std::vector<T>& B)
   std::cout << "Polynomial multiplication using halfcomplex with: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
   std::vector<T> TA(N),TB(N);
-  boost::math::fft::fftw_rfft<T> P(N); 
+  boost::math::fft::fftw_rdft<T> P(N); 
   P.real_to_halfcomplex(A.begin(),A.end(),TA.begin());
   P.real_to_halfcomplex(B.begin(),B.end(),TB.begin());
   
@@ -68,7 +68,7 @@ void multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
   std::cout << "Polynomial multiplication using complex: "<< boost::core::demangle(typeid(T).name()) <<"\n";
   const std::size_t N = A.size();
   std::vector< boost::multiprecision::complex<T> > TA(N),TB(N);
-  boost::math::fft::fftw_rfft<T> P(N); 
+  boost::math::fft::fftw_rdft<T> P(N); 
   P.real_to_complex(A.begin(),A.end(),TA.begin());
   P.real_to_complex(B.begin(),B.end(),TB.begin());
   
