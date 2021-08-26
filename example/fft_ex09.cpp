@@ -12,6 +12,7 @@
 #include <numeric>
 
 #if __cplusplus >= 201700L
+#include <memory>
 #include <memory_resource>
 #endif
 
@@ -22,12 +23,12 @@ int main()
 #if __cplusplus >= 201700L
   const std::size_t N = 100;
   std::array<char,30000> buf;
-  std::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),std::null_memory_resource()};
+  std::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),std::pmr::null_memory_resource()};
   
   using Real = double;
   using Complex = std::complex<Real>;
-  using allocator_type = std::polymorphic_allocator<Complex>;
+  using allocator_type = std::pmr::polymorphic_allocator<Complex>;
   
   std::vector<Complex,allocator_type> A(N,Complex(),&pool);
   std::vector<Complex,allocator_type> B(N,Complex(),&pool);
