@@ -117,7 +117,7 @@ struct complex_bsl_dft
 {
   using Complex = boost::multiprecision::complex<T> ;
 #if __cplusplus >= 201700
-  using type = bsl_dft< Complex, boost::container::pmr::polymorphic_allocator<Complex> >;
+  using type = bsl_dft< Complex, std::pmr::polymorphic_allocator<Complex> >;
 #else
   using type = bsl_dft< Complex, std::allocator<Complex> >;
 #endif
