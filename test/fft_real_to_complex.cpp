@@ -8,13 +8,13 @@
 #endif
 #include <boost/multiprecision/cpp_bin_float.hpp>
 #include <boost/multiprecision/cpp_complex.hpp>
-#include <boost/multiprecision/mpfr.hpp>
-#include <boost/multiprecision/mpc.hpp>
 
 #include <boost/math/fft/bsl_backend.hpp>
 #if defined(__GNUC__)
 #include <boost/math/fft/fftw_backend.hpp>
 #include <boost/math/fft/gsl_backend.hpp>
+#include <boost/multiprecision/mpfr.hpp>
+#include <boost/multiprecision/mpc.hpp>
 #endif
 #include <vector>
 #include <iterator>
