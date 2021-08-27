@@ -7,33 +7,35 @@
 //  or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // Example using custom allocators
-
 #include <boost/math/fft/bsl_backend.hpp>
 #include <array>
 #include <numeric>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
-#include <boost/container/pmr/global_resource.hpp>
 
+#if __cplusplus >= 201700L
+#include <memory>
+#include <memory_resource>
+#endif
 
 using namespace boost::math::fft;
 
 int main()
 {
+#if __cplusplus >= 201700L
   const std::size_t N = 100;
   std::array<char,30000> buf;
-  boost::container::pmr::monotonic_buffer_resource
-    pool{buf.data(),buf.size(),boost::container::pmr::null_memory_resource()};
+  std::pmr::monotonic_buffer_resource
+    pool{buf.data(),buf.size(),std::pmr::null_memory_resource()};
   
   using Real = double;
-  using Complex = boost::multiprecision::complex<Real>;
-  using allocator_type = boost::container::pmr::polymorphic_allocator<Complex>;
+  using Complex = std::complex<Real>;
+  using allocator_type = std::pmr::polymorphic_allocator<Complex>;
   
   std::vector<Complex,allocator_type> A(N,Complex(),&pool);
   std::vector<Complex,allocator_type> B(N,Complex(),&pool);
   // ...
   bsl_dft<Complex,allocator_type> plan(N,&pool);
   plan.forward(A.begin(),A.end(),B.begin());
+#endif
   return 0;
 }
 

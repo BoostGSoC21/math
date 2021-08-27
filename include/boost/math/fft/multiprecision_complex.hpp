@@ -26,7 +26,7 @@
   #include <boost/multiprecision/cpp_bin_float.hpp>
   #include <boost/multiprecision/cpp_dec_float.hpp>
   #if defined(__GNUC__)
-  #include <boost/multiprecision/mpfr.hpp>
+  //#include <boost/multiprecision/mpfr.hpp>
   #endif
   #include <boost/core/demangle.hpp>
   #include <boost/core/enable_if.hpp>
@@ -36,7 +36,7 @@
   #endif
   #include <boost/multiprecision/cpp_complex.hpp>
   #if defined(__GNUC__)
-  #include <boost/multiprecision/mpc.hpp>
+  //#include <boost/multiprecision/mpc.hpp>
   #endif
 
   namespace boost { namespace multiprecision { namespace detail {
@@ -62,10 +62,10 @@
 
     #if defined(__GNUC__)
     // mpc_complex --> <boost/multiprecision/mpc.hpp>
-    template <unsigned Digits, mpfr_allocation_type AllocationType, expression_template_option ExpressionTemplates>
-    struct make_boost_complex< number< backends::mpfr_float_backend<Digits, AllocationType>, ExpressionTemplates> > {
-      using type = number<mpc_complex_backend<Digits>, ExpressionTemplates>;
-    };
+    //template <unsigned Digits, mpfr_allocation_type AllocationType, expression_template_option ExpressionTemplates>
+    //struct make_boost_complex< number< backends::mpfr_float_backend<Digits, AllocationType>, ExpressionTemplates> > {
+    //  using type = number<mpc_complex_backend<Digits>, ExpressionTemplates>;
+    //};
     #endif
 
     #if __cplusplus < 201700L

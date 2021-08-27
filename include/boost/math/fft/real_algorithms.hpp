@@ -13,21 +13,14 @@
   #include <numeric>
   #include <cmath>
   
+  #include <boost/math/fft/simple_complex.hpp>
+  
   namespace boost { namespace math {  namespace fft {
   
   namespace detail {
   
   template<class T>
   inline void real_dft_2(
-    const T* in, 
-    T* out, int)
-  {
-    T o1 = in[0]+in[1], o2 = in[0]-in[1] ;
-    out[0] = o1;
-    out[1] = o2;
-  }
-  template<class T>
-  inline void real_inverse_dft_2(
     const T* in, 
     T* out, int)
   {
@@ -373,7 +366,7 @@
       composite sizes.
     */
     using allocator_type = allocator_t;
-    using ComplexType = ::boost::multiprecision::complex<T>; 
+    using ComplexType = simple_complex<T>; 
     using ComplexAllocator = typename std::allocator_traits<allocator_type>::template rebind_alloc<ComplexType>;
     
     const long n = static_cast<long>(std::distance(in_first,in_last));
@@ -516,7 +509,7 @@
       Reverse graph.
     */
     using allocator_type = allocator_t;
-    using ComplexType = ::boost::multiprecision::complex<T>; 
+    using ComplexType = simple_complex<T>; 
     using ComplexAllocator = typename std::allocator_traits<allocator_type>::template rebind_alloc<ComplexType>;
     
     const long n = static_cast<long>(std::distance(in_first,in_last));

@@ -251,10 +251,10 @@ namespace fft { namespace detail {
   using gsl_dft = detail::complex_dft<detail::gsl_backend,RingType,Allocator_t>;
 
   template<class T = double, class Allocator_t = std::allocator<T> >
-  using gsl_rfft = detail::real_dft<detail::gsl_rfft_backend,T,Allocator_t>;
+  using gsl_rdft = detail::real_dft<detail::gsl_rfft_backend,T,Allocator_t>;
 
   using gsl_transform = transform< gsl_dft<> >;
-  using gsl_real_transform = transform< gsl_rfft<> >;
+  using gsl_real_transform = transform< gsl_rdft<> >;
   #endif
 
 } // namespace fft
