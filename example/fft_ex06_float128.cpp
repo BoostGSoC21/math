@@ -12,21 +12,23 @@
 */
 
 #include <boost/math/fft/bsl_backend.hpp>
-#include <boost/multiprecision/float128.hpp>
+#include <boost/multiprecision/complex128.hpp>
 #include <iostream>
 #include <vector>
 #include <exception>
 
-template<class T>
-std::vector<T> multiply_complex(const std::vector<T>& A, const std::vector<T>& B)
+template<class Real, class Complex>
+std::vector<Real> multiply_complex(
+    const std::vector<Real>& A, 
+    const std::vector<Real>& B)
 {
   const std::size_t N = A.size();
-  std::vector< boost::multiprecision::complex<T> > TA(N),TB(N);
-  boost::math::fft::bsl_rdft<T> P(N); 
+  std::vector< Complex > TA(N),TB(N);
+  boost::math::fft::bsl_rdft<Real> P(N); 
   P.real_to_complex(A.begin(),A.end(),TA.begin());
   P.real_to_complex(B.begin(),B.end(),TB.begin());
   
-  std::vector<T> C(N);
+  std::vector<Real> C(N);
   
   for(unsigned int i=0;i<N;++i)
   {
@@ -35,16 +37,16 @@ std::vector<T> multiply_complex(const std::vector<T>& A, const std::vector<T>& B
   
   P.complex_to_real(TA.begin(),TA.end(),C.begin());
   std::transform(C.begin(), C.end(), C.begin(),
-                 [N](T x) { return x / N; });
+                 [N](Real x) { return x / N; });
   
   return C;
 }
 
-template<class T>
-T difference(const std::vector<T>& A, const std::vector<T>& B)
+template<class Real>
+Real difference(const std::vector<Real>& A, const std::vector<Real>& B)
 {
   using std::abs;
-  T diff{};
+  Real diff{};
   if(A.size()!=B.size()) return -1;
   for(unsigned int i=0;i<A.size();++i)
   {
@@ -53,7 +55,7 @@ T difference(const std::vector<T>& A, const std::vector<T>& B)
   return diff;
 }
 
-template<typename Real>
+template<typename Real, typename Complex>
 void multiply() {
   using std::abs;
   std::vector<Real> A{1.,4.,-5.,1.,0.,0.,0.,0.};
@@ -63,7 +65,7 @@ void multiply() {
   std::vector<Real> result;
   Real diff;
   
-  result = multiply_complex(A,B);
+  result = multiply_complex<Real,Complex>(A,B);
   diff = difference(result,C);
   if(abs(diff)>1e-3) 
     throw std::runtime_error("wrong result");
@@ -71,7 +73,9 @@ void multiply() {
 
 int main()
 {
-  multiply<::boost::multiprecision::float128>();
+  multiply<
+    ::boost::multiprecision::float128,
+    ::boost::multiprecision::complex128>();
   return 0;
 }
 
